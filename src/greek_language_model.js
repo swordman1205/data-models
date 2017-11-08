@@ -15,8 +15,8 @@ class GreekLanguageModel extends LanguageModel {
     this.sourceLanguage = Constants.LANG_GREEK
     this.contextForward = 0
     this.contextBackward = 0
-    this.direction = Constants.DIR_LTR
-    this.baseUnit = Constants.UNIT_WORD
+    this.direction = Constants.LANG_DIR_LTR
+    this.baseUnit = Constants.LANG_UNIT_WORD
     this.languageCodes = [Constants.STR_LANG_CODE_GRC]
     this.features = this._initializeFeatures()
   }
