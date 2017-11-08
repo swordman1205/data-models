@@ -7,26 +7,25 @@ class Lemma {
      * @param {string} word - A word.
      * @param {string} language - A language of a word.
      */
-    constructor(word, language) {
+  constructor (word, language) {
+    if (!word) {
+      throw new Error('Word should not be empty.')
+    }
 
-        if (!word) {
-            throw new Error('Word should not be empty.');
-        }
+    if (!language) {
+      throw new Error('Langauge should not be empty.')
+    }
 
-        if (!language) {
-            throw new Error('Langauge should not be empty.');
-        }
-
-        //if (!languages.isAllowed(language)) {
+        // if (!languages.isAllowed(language)) {
         //    throw new Error('Language "' + language + '" is not supported.');
-        //}
+        // }
 
-        this.word = word;
-        this.language = language;
-    }
+    this.word = word
+    this.language = language
+  }
 
-    static readObject(jsonObject) {
-        return new Lemma(jsonObject.word, jsonObject.language);
-    }
+  static readObject (jsonObject) {
+    return new Lemma(jsonObject.word, jsonObject.language)
+  }
 }
-export default Lemma;
+export default Lemma

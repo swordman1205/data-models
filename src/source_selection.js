@@ -1,59 +1,58 @@
-import LanguageModelFactory from './language_model_factory.js';
-import LanguageModel from './language_model.js';
+import LanguageModelFactory from './language_model_factory.js'
+import LanguageModel from './language_model.js'
 class SourceSelection {
-
-  constructor(target,default_language) {
-    this.target = target;
-    let target_lang;
+  constructor (target, defaultLanguage) {
+    this.target = target
+    let targetLang
     try {
-      target_lang = this.getAttribute("lang") || this.getAttribute("xml:lang");
-    } catch(e) {
+      targetLang = this.getAttribute('lang') || this.getAttribute('xml:lang')
+    } catch (e) {
       // if we don't have an element
-      console.log("getAttribute not accessible on target");
+      console.log('getAttribute not accessible on target')
     }
-    if (! target_lang) {
-      let closest_lang_element =target.closest("[lang]") || this.target.closest("[xml\\:lang]");
-      if (closest_lang_element) {
-        target_lang = closest_lang_element.getAttribute("lang") || closest_lang_element.getAttribute("xml:lang");
+    if (!targetLang) {
+      let closestLangElement = target.closest('[lang]') || this.target.closest('[xml\\:lang]')
+      if (closestLangElement) {
+        targetLang = closestLangElement.getAttribute('lang') || closestLangElement.getAttribute('xml:lang')
       }
     }
-    if (! target_lang) {
-      target_lang = default_language;
+    if (!targetLang) {
+      targetLang = defaultLanguage
     }
-    this.language = LanguageModelFactory.getLanguageForCode(target_lang);
-    this.initialize({word:null,normalized_word:null,start:0,end:0,context:null,position:0});
+    this.language = LanguageModelFactory.getLanguageForCode(targetLang)
+    this.initialize({word: null, normalized_word: null, start: 0, end: 0, context: null, position: 0})
   }
 
-  initialize(word_obj) {
-    this.in_margin = this.selectionInMargin();
+  initialize (wordObj) {
+    this.in_margin = this.selectionInMargin()
     if (this.in_margin) {
-      this.word_selection = word_obj;
-      return;
+      this.word_selection = wordObj
+      return
     }
     try {
-      this.original_selection = this.target.ownerDocument.getSelection();
-    } catch(e) {
-      this.original_selection = null;
-      console.log("No selection found in target owner document")
-      return;
+      this.original_selection = this.target.ownerDocument.getSelection()
+    } catch (e) {
+      this.original_selection = null
+      console.log('No selection found in target owner document')
+      return
     }
-    let separator = this.language.base_unit;
-    switch(separator) {
+    let separator = this.language.base_unit
+    switch (separator) {
       case LanguageModel.UNIT_WORD:
-          word_obj = this.doSpaceSeparatedWordSelection();
-          break;
+        wordObj = this.doSpaceSeparatedWordSelection()
+        break
       case LanguageModel.UNIT_CHAR:
-          word_obj = this.doCharacterBasedWordSelection();
-          break;
+        wordObj = this.doCharacterBasedWordSelection()
+        break
       default:
-          throw new Error(`unknown base_unit ${separator.toString()}`)
+        throw new Error(`unknown base_unit ${separator.toString()}`)
     }
-    this.word_selection = word_obj;
+    this.word_selection = wordObj
   }
 
-  reset() {
+  reset () {
     if (this.word_selection.word) {
-      this.word_selection.reset();
+      this.word_selection.reset()
     }
   }
 
@@ -64,20 +63,19 @@ class SourceSelection {
    * @returns true if in the margin, false if not
    * @type Boolean
    */
-  selectionInMargin()
-  {
+  selectionInMargin () {
       // Sometimes mouseover a margin seems to set the range offset
       // greater than the string length, so check that condition,
       // as well as looking for whitepace at the offset with
       // only whitespace to the right or left of the offset
       // TODO - not sure if it's necessary anymore?
-      //var inMargin =
+      // var inMargin =
        //   this.original_selection.anchorOffset >= this.original_selection.toString().length ||
       //    ( a_rngstr[a_ro].indexOf(" ") == 0 &&
       //          (a_rngstr.slice(0,a_ro).search(/\S/) == -1 ||
       //         a_rngstr.slice(a_ro+1,-1).search(/\S/) == -1)
       //    );
-      return false;
+    return false
   };
 
   /**
@@ -88,43 +86,43 @@ class SourceSelection {
   * @see #findSelection
   * @private
   */
-  doSpaceSeparatedWordSelection() {
-    let selection = this.original_selection;
-    let anchor = selection.anchorNode;
-    let focus = selection.focusNode;
-    let anchor_text = anchor.data;
-    let ro = selection.anchorOffset;
+  doSpaceSeparatedWordSelection () {
+    let selection = this.original_selection
+    let anchor = selection.anchorNode
+    let focus = selection.focusNode
+    let anchorText = anchor.data
+    let ro = selection.anchorOffset
     // clean string:
     //   convert punctuation to spaces
-    anchor_text = anchor_text.replace(new RegExp("[" + this.language.getPunctuation() + "]","g")," ");
+    anchorText = anchorText.replace(new RegExp('[' + this.language.getPunctuation() + ']', 'g'), ' ')
 
-    let new_ro = ro;
-    while ((new_ro > 0) && (anchor_text[--new_ro] === ' '));
-    if (new_ro > 0 && new_ro < ro) {
+    let newRo = ro
+    while ((newRo > 0) && (anchorText[--newRo] === ' '));
+    if (newRo > 0 && newRo < ro) {
       // we backed up so position ourselves at the first whitespace before
       // the selected word
       // this is based upon the original Alpheios code before the SelectionAPI
       // was available. It's unclear if it's still needed but we'll keep it in
       // place, modified, for now
-      ro = new_ro + 1;
+      ro = newRo + 1
     }
 
     // remove leading white space
     // find word
-    let wordStart = anchor_text.lastIndexOf(" ", ro) + 1;
-    let wordEnd = anchor_text.indexOf(" ", wordStart);
+    let wordStart = anchorText.lastIndexOf(' ', ro) + 1
+    let wordEnd = anchorText.indexOf(' ', wordStart)
 
     if (wordEnd === -1) {
-      wordEnd = anchor_text.length;
+      wordEnd = anchorText.length
     }
 
     // if empty, nothing to do
     if (wordStart === wordEnd) {
-      return {};
+      return {}
     }
 
-    //extract word
-    let word = anchor_text.substring(wordStart,wordEnd);
+    // extract word
+    let word = anchorText.substring(wordStart, wordEnd)
 
     /* Identify the words preceeding and following the focus word
     * TODO - query the type of node in the selection to see if we are
@@ -133,45 +131,45 @@ class SourceSelection {
     * nodes that are broken up by formatting tags (<br/> etc))
     */
 
-    let context_str = null;
-    let context_pos = 0;
+    let contextStr = null
+    let contextPos = 0
 
     if (this.language.context_forward || this.language.context_backward) {
-      let startstr = anchor_text.substring(0, wordEnd);
-      let endstr = anchor_text.substring(wordEnd+1, anchor_text.length);
-      let pre_wordlist = startstr.split(/\s+/);
-      let post_wordlist = endstr.split(/\s+/);
+      let startstr = anchorText.substring(0, wordEnd)
+      let endstr = anchorText.substring(wordEnd + 1, anchorText.length)
+      let preWordlist = startstr.split(/\s+/)
+      let postWordlist = endstr.split(/\s+/)
 
       // limit to the requested # of context words
       // prior to the selected word
       // the selected word is the last item in the
-      // pre_wordlist array
-      if (pre_wordlist.length > this.language.context_backward + 1) {
-          pre_wordlist = pre_wordlist.slice(pre_wordlist.length-(this.language.context_backward + 1));
+      // preWordlist array
+      if (preWordlist.length > this.language.context_backward + 1) {
+        preWordlist = preWordlist.slice(preWordlist.length - (this.language.context_backward + 1))
       }
       // limit to the requested # of context words
       // following to the selected word
-      if (post_wordlist.length > this.language.context_forward) {
-          post_wordlist = post_wordlist.slice(0, this.language.context_forward);
+      if (postWordlist.length > this.language.context_forward) {
+        postWordlist = postWordlist.slice(0, this.language.context_forward)
       }
 
       /* TODO: should we put the punctuation back in to the
       * surrounding context? Might be necessary for syntax parsing.
       */
-      context_str =
-          pre_wordlist.join(" ") + " " + post_wordlist.join(" ");
-      context_pos = pre_wordlist.length - 1;
+      contextStr =
+          preWordlist.join(' ') + ' ' + postWordlist.join(' ')
+      contextPos = preWordlist.length - 1
     }
 
-    let word_obj = { word: word,
-        normalized_word: this.language.normalizeWord(word),
-        start: wordStart,
-        end: wordEnd,
-        context: context_str,
-        position: context_pos,
-        reset: () => { selection.setBaseAndExtent(anchor, wordStart, focus, wordEnd); }
-      };
-    return word_obj;
+    let wordObj = { word: word,
+      normalized_word: this.language.normalizeWord(word),
+      start: wordStart,
+      end: wordEnd,
+      context: contextStr,
+      position: contextPos,
+      reset: () => { selection.setBaseAndExtent(anchor, wordStart, focus, wordEnd) }
+    }
+    return wordObj
   }
 
   /**
@@ -181,13 +179,12 @@ class SourceSelection {
    * @see #findSelection
    * @private
    */
-  doCharacterBasedWordSelection() {
+  doCharacterBasedWordSelection () {
     // TODO
   }
 
-  toString() {
-    return `language:${this.language} word: ${this.word_selection.normalized_word}`;
+  toString () {
+    return `language:${this.language} word: ${this.word_selection.normalized_word}`
   }
-
 }
-export default SourceSelection;
+export default SourceSelection
