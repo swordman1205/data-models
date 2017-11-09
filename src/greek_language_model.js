@@ -24,7 +24,7 @@ class GreekLanguageModel extends LanguageModel {
   _initializeFeatures () {
     let features = {}
     let code = this.toCode()
-    features[Feature.types.part] = new FeatureType(Feature.types.part, ['noun', 'adjective', 'verb', 'pronoun', 'article', 'numeral', 'conjunction'], code)
+    features[Feature.types.part] = new FeatureType(Feature.types.part, ['noun', 'adjective', 'verb', 'pronoun', 'article', 'numeral', 'conjunction', 'preoposition', 'interjection'], code)
     features[Feature.types.number] = new FeatureType(Feature.types.number, ['singular', 'plural', 'dual'], code)
     features[Feature.types.grmCase] = new FeatureType(Feature.types.grmCase, ['nominative', 'genitive', 'dative', 'accusative', 'vocative'], code)
     features[Feature.types.declension] = new FeatureType(Feature.types.declension, ['first', 'second', 'third'], code)
@@ -34,7 +34,7 @@ class GreekLanguageModel extends LanguageModel {
     features[Feature.types.voice] = new FeatureType(Feature.types.voice, ['passive', 'active', 'mediopassive', 'middle'], code)
     features[Feature.types.mood] = new FeatureType(Feature.types.mood, ['indicative', 'subjunctive', 'optative', 'imperative'], code)
     features[Feature.types.person] = new FeatureType(Feature.types.person, ['first', 'second', 'third'], code)
-    features[Feature.types.dialect] = new FeatureType(Feature.types.person, ['attic', 'epic', 'doric'], code)
+    features[Feature.types.dialect] = new FeatureType(Feature.types.dialect, ['attic', 'epic', 'doric'], code)
     return features
   }
 
