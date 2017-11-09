@@ -1,4 +1,6 @@
 import LanguageModel from './language_model.js'
+import Feature from './feature.js'
+import FeatureType from './feature_type.js'
 import * as Constants from './constants.js'
 
 /**
@@ -21,6 +23,7 @@ class ArabicLanguageModel extends LanguageModel {
 
   _initializeFeatures () {
     let features = {}
+    features[Feature.types.part] = new FeatureType(Feature.types.part, ['noun', 'adjective', 'verb', 'pronoun', 'article', 'numeral', 'conjunction', 'preoposition', 'interjection'], this.toCode())
     return features
   }
 
