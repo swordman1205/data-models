@@ -1,4 +1,5 @@
 import Feature from './feature.js'
+import LanguageModelFactory from './language_model_factory.js'
 /*
  Hierarchical structure of return value of a morphological analyzer:
 
@@ -37,17 +38,33 @@ class Inflection {
       throw new Error('Langauge should not be empty.')
     }
 
+    if (!LanguageModelFactory.supportsLanguage(language)) {
+      throw new Error(`language ${language} not supported.`)
+    }
+
     this.stem = stem
     this.language = language
 
-        // Suffix may not be present in every word. If missing, it will set to null.
+    // Suffix may not be present in every word. If missing, it will set to null.
     this.suffix = null
+
+    // Prefix may not be present in every word. If missing, it will set to null.
+    this.prefix = null
+
+    // Example may not be provided
+    this.example = null
   }
 
   static readObject (jsonObject) {
     let inflection = new Inflection(jsonObject.stem, jsonObject.language)
     if (jsonObject.suffix) {
       inflection.suffix = jsonObject.suffix
+    }
+    if (jsonObject.prefix) {
+      inflection.prefix = jsonObject.prefix
+    }
+    if (jsonObject.example) {
+      inflection.example = jsonObject.example
     }
     return inflection
   }

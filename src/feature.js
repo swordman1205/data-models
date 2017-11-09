@@ -60,7 +60,7 @@ Feature.types = {
   meaning: 'meaning', // Meaning of a word
   source: 'source', // Source of word definition
   footnote: 'footnote', // A footnote for a word's ending
-  dialect: 'dialect',
+  dialect: 'dialect', // a dialect iderntifier
   isAllowed (value) {
     let v = `${value}`
     return Object.values(this).includes(v)

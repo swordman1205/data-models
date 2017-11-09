@@ -12,4 +12,5 @@ import Lemma from './lemma.js'
 import Inflection from './inflection.js'
 import LatinLanguageModel from './latin_language_model.js'
 import GreekLanguageModel from './greek_language_model.js'
-export { Constants, SourceSelection, Feature, FeatureType, FeatureList, FeatureImporter, Inflection, LanguageModelFactory, Homonym, Lexeme, Lemma, LatinLanguageModel, GreekLanguageModel }
+import ArabicLanguageModel from './arabic_language_model.js'
+export { Constants, SourceSelection, Feature, FeatureType, FeatureList, FeatureImporter, Inflection, LanguageModelFactory, Homonym, Lexeme, Lemma, LatinLanguageModel, GreekLanguageModel, ArabicLanguageModel }

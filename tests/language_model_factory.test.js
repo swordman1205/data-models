@@ -2,6 +2,8 @@
 'use strict'
 import LanguageModelFactory from '../src/language_model_factory.js'
 import LatinLanguageModel from '../src/latin_language_model.js'
+import GreekLanguageModel from '../src/greek_language_model.js'
+import ArabicLanguageModel from '../src/arabic_language_model.js'
 import LanguageModel from '../src/language_model.js'
 
 describe('LanguageModelFactory object', () => {
@@ -15,9 +17,23 @@ describe('LanguageModelFactory object', () => {
     expect(model instanceof LatinLanguageModel).toBeTruthy()
   })
 
+  test('Should return a Greek model', () => {
+    let model = LanguageModelFactory.getLanguageForCode('grc')
+    expect(model instanceof GreekLanguageModel).toBeTruthy()
+  })
+
+  test('Should return an Arabic model', () => {
+    let model = LanguageModelFactory.getLanguageForCode('ara')
+    expect(model instanceof ArabicLanguageModel).toBeTruthy()
+  })
+
   test('Should return a Base model', () => {
     let model = LanguageModelFactory.getLanguageForCode('foo')
     expect(model instanceof LanguageModel).toBeTruthy()
     expect(model.sourceLanguage).toBeNull()
+  })
+
+  test('Should return false for an unsupported language', () => {
+    expect(LanguageModelFactory.supportsLanguage('foo')).toBeFalsy()
   })
 })
