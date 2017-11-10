@@ -19,6 +19,10 @@ class ArabicLanguageModel extends LanguageModel {
     this._initializeFeatures()
   }
 
+  _initializeFeatures () {
+    this.features = super._initializeFeatures()
+  }
+
   toCode () {
     return Constants.STR_LANG_CODE_ARA
   }
