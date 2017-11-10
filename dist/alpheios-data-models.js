@@ -733,6 +733,113 @@ class Importer {
 }
 
 /**
+ * A list of grammatical features that characterizes a language unit. Has some additional service methods,
+ * compared with standard storage objects.
+ */
+class FeatureList {
+    /**
+     * Initializes a feature list.
+     * @param {FeatureType[]} features - Features that build the list (optional, can be set later).
+     */
+  constructor (features = []) {
+    this._features = [];
+    this._types = {};
+    this.add(features);
+  }
+
+  add (features) {
+    if (!features || !Array.isArray(features)) {
+      throw new Error('Features must be defined and must come in an array.')
+    }
+
+    for (let feature of features) {
+      this._features.push(feature);
+      this._types[feature.type] = feature;
+    }
+  }
+
+    /**
+     * Returns an array of grouping features.
+     * @returns {FeatureType[]} - An array of grouping features.
+     */
+  get items () {
+    return this._features
+  }
+
+  forEach (callback) {
+    this._features.forEach(callback);
+  }
+
+    /**
+     * Returns a feature of a particular type. If such feature does not exist in a list, returns undefined.
+     * @param {string} type - Feature type as defined in `types` object.
+     * @return {FeatureType | undefined} A feature if a particular type if contains it. Undefined otherwise.
+     */
+  ofType (type) {
+    if (this.hasType(type)) {
+      return this._types[type]
+    }
+  }
+
+    /**
+     * Checks whether a feature list has a feature of a specific type.
+     * @param {string} type - Feature type as defined in `types` object.
+     * @return {boolean} Whether a feature list has a feature of a particular type.
+     */
+  hasType (type) {
+    return this._types.hasOwnProperty(type)
+  }
+}
+
+class FeatureImporter {
+  constructor () {
+    this.hash = {};
+    return this
+  }
+
+    /**
+     * Sets mapping between external imported value and one or more library standard values. If an importedValue
+     * is already in a hash table, old libraryValue will be overwritten with the new one.
+     * @param {string} importedValue - External value
+     * @param {Object | Object[] | string | string[]} libraryValue - Library standard value
+     */
+  map (importedValue, libraryValue) {
+    if (!importedValue) {
+      throw new Error('Imported value should not be empty.')
+    }
+
+    if (!libraryValue) {
+      throw new Error('Library value should not be empty.')
+    }
+
+    this.hash[importedValue] = libraryValue;
+    return this
+  }
+
+    /**
+     * Checks if value is in a map.
+     * @param {string} importedValue - A value to test.
+     * @returns {boolean} - Tru if value is in a map, false otherwise.
+     */
+  has (importedValue) {
+    return this.hash.hasOwnProperty(importedValue)
+  }
+
+    /**
+     * Returns one or more library standard values that match an external value
+     * @param {string} importedValue - External value
+     * @returns {Object | string} One or more of library standard values
+     */
+  get (importedValue) {
+    if (this.has(importedValue)) {
+      return this.hash[importedValue]
+    } else {
+      throw new Error('A value "' + importedValue + '" is not found in the importer.')
+    }
+  }
+}
+
+/**
  * @class  LanguageModel is the base class for language-specific behavior
  */
 class LanguageModel {
@@ -1113,301 +1220,6 @@ class LanguageModelFactory {
   }
 }
 
-class SourceSelection {
-  constructor (target, defaultLanguage) {
-    this.target = target;
-    let targetLang;
-    try {
-      targetLang = this.getAttribute('lang') || this.getAttribute('xml:lang');
-    } catch (e) {
-      // if we don't have an element
-      console.log('getAttribute not accessible on target');
-    }
-    if (!targetLang) {
-      let closestLangElement = target.closest('[lang]') || this.target.closest('[xml\\:lang]');
-      if (closestLangElement) {
-        targetLang = closestLangElement.getAttribute('lang') || closestLangElement.getAttribute('xml:lang');
-      }
-    }
-    if (!targetLang) {
-      targetLang = defaultLanguage;
-    }
-    this.language = LanguageModelFactory.getLanguageForCode(targetLang);
-    this.initialize({word: null, normalized_word: null, start: 0, end: 0, context: null, position: 0});
-  }
-
-  initialize (wordObj) {
-    this.in_margin = this.selectionInMargin();
-    if (this.in_margin) {
-      this.word_selection = wordObj;
-      return
-    }
-    try {
-      this.original_selection = this.target.ownerDocument.getSelection();
-    } catch (e) {
-      this.original_selection = null;
-      console.log('No selection found in target owner document');
-      return
-    }
-    let separator = this.language.base_unit;
-    switch (separator) {
-      case LanguageModel.UNIT_WORD:
-        wordObj = this.doSpaceSeparatedWordSelection();
-        break
-      case LanguageModel.UNIT_CHAR:
-        wordObj = this.doCharacterBasedWordSelection();
-        break
-      default:
-        throw new Error(`unknown base_unit ${separator.toString()}`)
-    }
-    this.word_selection = wordObj;
-  }
-
-  reset () {
-    if (this.word_selection.word) {
-      this.word_selection.reset();
-    }
-  }
-
-  /**
-   * Helper function to determine if the user's selection
-   * is in the margin of the document
-   * @private
-   * @returns true if in the margin, false if not
-   * @type Boolean
-   */
-  selectionInMargin () {
-      // Sometimes mouseover a margin seems to set the range offset
-      // greater than the string length, so check that condition,
-      // as well as looking for whitepace at the offset with
-      // only whitespace to the right or left of the offset
-      // TODO - not sure if it's necessary anymore?
-      // var inMargin =
-       //   this.original_selection.anchorOffset >= this.original_selection.toString().length ||
-      //    ( a_rngstr[a_ro].indexOf(" ") == 0 &&
-      //          (a_rngstr.slice(0,a_ro).search(/\S/) == -1 ||
-      //         a_rngstr.slice(a_ro+1,-1).search(/\S/) == -1)
-      //    );
-    return false
-  };
-
-  /**
-  * Helper method for {@link #findSelection} which
-  * identifies target word and surrounding
-  * context for languages whose words are
-  * space-separated
-  * @see #findSelection
-  * @private
-  */
-  doSpaceSeparatedWordSelection () {
-    let selection = this.original_selection;
-    let anchor = selection.anchorNode;
-    let focus = selection.focusNode;
-    let anchorText = anchor.data;
-    let ro = selection.anchorOffset;
-    // clean string:
-    //   convert punctuation to spaces
-    anchorText = anchorText.replace(new RegExp('[' + this.language.getPunctuation() + ']', 'g'), ' ');
-
-    let newRo = ro;
-    while ((newRo > 0) && (anchorText[--newRo] === ' '));
-    if (newRo > 0 && newRo < ro) {
-      // we backed up so position ourselves at the first whitespace before
-      // the selected word
-      // this is based upon the original Alpheios code before the SelectionAPI
-      // was available. It's unclear if it's still needed but we'll keep it in
-      // place, modified, for now
-      ro = newRo + 1;
-    }
-
-    // remove leading white space
-    // find word
-    let wordStart = anchorText.lastIndexOf(' ', ro) + 1;
-    let wordEnd = anchorText.indexOf(' ', wordStart);
-
-    if (wordEnd === -1) {
-      wordEnd = anchorText.length;
-    }
-
-    // if empty, nothing to do
-    if (wordStart === wordEnd) {
-      return {}
-    }
-
-    // extract word
-    let word = anchorText.substring(wordStart, wordEnd);
-
-    /* Identify the words preceeding and following the focus word
-    * TODO - query the type of node in the selection to see if we are
-    * dealing with something other than text nodes
-    * We also need to be able to pull surrounding context for text
-    * nodes that are broken up by formatting tags (<br/> etc))
-    */
-
-    let contextStr = null;
-    let contextPos = 0;
-
-    if (this.language.context_forward || this.language.context_backward) {
-      let startstr = anchorText.substring(0, wordEnd);
-      let endstr = anchorText.substring(wordEnd + 1, anchorText.length);
-      let preWordlist = startstr.split(/\s+/);
-      let postWordlist = endstr.split(/\s+/);
-
-      // limit to the requested # of context words
-      // prior to the selected word
-      // the selected word is the last item in the
-      // preWordlist array
-      if (preWordlist.length > this.language.context_backward + 1) {
-        preWordlist = preWordlist.slice(preWordlist.length - (this.language.context_backward + 1));
-      }
-      // limit to the requested # of context words
-      // following to the selected word
-      if (postWordlist.length > this.language.context_forward) {
-        postWordlist = postWordlist.slice(0, this.language.context_forward);
-      }
-
-      /* TODO: should we put the punctuation back in to the
-      * surrounding context? Might be necessary for syntax parsing.
-      */
-      contextStr =
-          preWordlist.join(' ') + ' ' + postWordlist.join(' ');
-      contextPos = preWordlist.length - 1;
-    }
-
-    let wordObj = { word: word,
-      normalized_word: this.language.normalizeWord(word),
-      start: wordStart,
-      end: wordEnd,
-      context: contextStr,
-      position: contextPos,
-      reset: () => { selection.setBaseAndExtent(anchor, wordStart, focus, wordEnd); }
-    };
-    return wordObj
-  }
-
-  /**
-   * Helper method for {@link #findSelection} which identifies
-   * target word and surrounding context for languages
-   * whose words are character based
-   * @see #findSelection
-   * @private
-   */
-  doCharacterBasedWordSelection () {
-    // TODO
-  }
-
-  toString () {
-    return `language:${this.language} word: ${this.word_selection.normalized_word}`
-  }
-}
-
-/**
- * A list of grammatical features that characterizes a language unit. Has some additional service methods,
- * compared with standard storage objects.
- */
-class FeatureList {
-    /**
-     * Initializes a feature list.
-     * @param {FeatureType[]} features - Features that build the list (optional, can be set later).
-     */
-  constructor (features = []) {
-    this._features = [];
-    this._types = {};
-    this.add(features);
-  }
-
-  add (features) {
-    if (!features || !Array.isArray(features)) {
-      throw new Error('Features must be defined and must come in an array.')
-    }
-
-    for (let feature of features) {
-      this._features.push(feature);
-      this._types[feature.type] = feature;
-    }
-  }
-
-    /**
-     * Returns an array of grouping features.
-     * @returns {FeatureType[]} - An array of grouping features.
-     */
-  get items () {
-    return this._features
-  }
-
-  forEach (callback) {
-    this._features.forEach(callback);
-  }
-
-    /**
-     * Returns a feature of a particular type. If such feature does not exist in a list, returns undefined.
-     * @param {string} type - Feature type as defined in `types` object.
-     * @return {FeatureType | undefined} A feature if a particular type if contains it. Undefined otherwise.
-     */
-  ofType (type) {
-    if (this.hasType(type)) {
-      return this._types[type]
-    }
-  }
-
-    /**
-     * Checks whether a feature list has a feature of a specific type.
-     * @param {string} type - Feature type as defined in `types` object.
-     * @return {boolean} Whether a feature list has a feature of a particular type.
-     */
-  hasType (type) {
-    return this._types.hasOwnProperty(type)
-  }
-}
-
-class FeatureImporter {
-  constructor () {
-    this.hash = {};
-    return this
-  }
-
-    /**
-     * Sets mapping between external imported value and one or more library standard values. If an importedValue
-     * is already in a hash table, old libraryValue will be overwritten with the new one.
-     * @param {string} importedValue - External value
-     * @param {Object | Object[] | string | string[]} libraryValue - Library standard value
-     */
-  map (importedValue, libraryValue) {
-    if (!importedValue) {
-      throw new Error('Imported value should not be empty.')
-    }
-
-    if (!libraryValue) {
-      throw new Error('Library value should not be empty.')
-    }
-
-    this.hash[importedValue] = libraryValue;
-    return this
-  }
-
-    /**
-     * Checks if value is in a map.
-     * @param {string} importedValue - A value to test.
-     * @returns {boolean} - Tru if value is in a map, false otherwise.
-     */
-  has (importedValue) {
-    return this.hash.hasOwnProperty(importedValue)
-  }
-
-    /**
-     * Returns one or more library standard values that match an external value
-     * @param {string} importedValue - External value
-     * @returns {Object | string} One or more of library standard values
-     */
-  get (importedValue) {
-    if (this.has(importedValue)) {
-      return this.hash[importedValue]
-    } else {
-      throw new Error('A value "' + importedValue + '" is not found in the importer.')
-    }
-  }
-}
-
 /**
  * Lemma, a canonical form of a word.
  */
@@ -1643,7 +1455,6 @@ class Homonym {
 }
 
 exports.Constants = constants;
-exports.SourceSelection = SourceSelection;
 exports.Feature = Feature;
 exports.FeatureType = FeatureType;
 exports.FeatureList = FeatureList;
