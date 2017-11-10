@@ -23,6 +23,7 @@ class LanguageModel {
     features[Feature.types.part] = new FeatureType(Feature.types.part,
       [ Constants.POFS_ADVERB,
         Constants.POFS_ADVERBIAL,
+        Constants.POFS_ADJECTIVE,
         Constants.POFS_ARTICLE,
         Constants.POFS_CONJUNCTION,
         Constants.POFS_EXCLAMATION,
