@@ -2,7 +2,7 @@
   "name": "alpheios-data-models",
   "version": "0.0.1",
   "description": "Alpheios Data Models",
-  "main": "src/driver.js",
+  "main": "dist/alpheios-data-models.js",
   "directories": {
     "doc": "doc"
   },

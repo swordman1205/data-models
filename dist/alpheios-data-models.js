@@ -1,9 +1,3 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.AlpheiosDataModels = {})));
-}(this, (function (exports) { 'use strict';
-
 /* eslint-disable no-unused-vars */
 const LANG_UNIT_WORD = Symbol('word');
 const LANG_UNIT_CHAR = Symbol('char');
@@ -1454,20 +1448,4 @@ class Homonym {
   }
 }
 
-exports.Constants = constants;
-exports.Feature = Feature;
-exports.FeatureType = FeatureType;
-exports.FeatureList = FeatureList;
-exports.FeatureImporter = FeatureImporter;
-exports.Inflection = Inflection;
-exports.LanguageModelFactory = LanguageModelFactory;
-exports.Homonym = Homonym;
-exports.Lexeme = Lexeme;
-exports.Lemma = Lemma;
-exports.LatinLanguageModel = LatinLanguageModel;
-exports.GreekLanguageModel = GreekLanguageModel;
-exports.ArabicLanguageModel = ArabicLanguageModel;
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-})));
+export { constants as Constants, Feature, FeatureType, FeatureList, FeatureImporter, Inflection, LanguageModelFactory, Homonym, Lexeme, Lemma, LatinLanguageModel, GreekLanguageModel, ArabicLanguageModel };
