@@ -1,3 +1,4 @@
+
 /**
  * Wrapper class for a (grammatical, usually) feature, such as part of speech or declension. Keeps both value and type information.
  */
@@ -52,6 +53,7 @@ Feature.types = {
   gender: 'gender',
   type: 'type',
   conjugation: 'conjugation',
+  comparison: 'comparison',
   tense: 'tense',
   voice: 'voice',
   mood: 'mood',
@@ -61,6 +63,15 @@ Feature.types = {
   source: 'source', // Source of word definition
   footnote: 'footnote', // A footnote for a word's ending
   dialect: 'dialect', // a dialect iderntifier
+  note: 'note', // a general note
+  pronunciation: 'pronunciation',
+  area: 'area',
+  geo: 'geo', // geographical data
+  kind: 'kind', // verb kind informatin
+  derivtype: 'derivtype',
+  stemtype: 'stemtype',
+  morph: 'morph', // general morphological information
+  var: 'var', // variance?
   isAllowed (value) {
     let v = `${value}`
     return Object.values(this).includes(v)

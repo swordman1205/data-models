@@ -1,4 +1,6 @@
 import * as Constants from './constants.js'
+import Feature from './feature.js'
+import FeatureType from './feature_type.js'
 
 /**
  * @class  LanguageModel is the base class for language-specific behavior
@@ -13,7 +15,35 @@ class LanguageModel {
     this.direction = Constants.LANG_DIR_LTR
     this.baseUnit = Constants.LANG_UNIT_WORD
     this.codes = []
-    this.features = {} // Grammatical feature types (definitions) within supported by a specific language.
+  }
+
+  _initializeFeatures () {
+    let features = {}
+    let code = this.toCode()
+    features[Feature.types.part] = new FeatureType(Feature.types.part,
+      [ Constants.POFS_ADVERB,
+        Constants.POFS_ADVERBIAL,
+        Constants.POFS_ARTICLE,
+        Constants.POFS_CONJUNCTION,
+        Constants.POFS_EXCLAMATION,
+        Constants.POFS_INTERJECTION,
+        Constants.POFS_NOUN,
+        Constants.POFS_NUMERAL,
+        Constants.POFS_PARTICLE,
+        Constants.POFS_PREFIX,
+        Constants.POFS_PREPOSITION,
+        Constants.POFS_PRONOUN,
+        Constants.POFS_SUFFIX,
+        Constants.POFS_SUPINE,
+        Constants.POFS_VERB,
+        Constants.POFS_VERB_PARTICIPLE ], code)
+    features[Feature.types.gender] = new FeatureType(Feature.types.gender,
+      [ Constants.GEND_MASCULINE, Constants.GEND_FEMININE, Constants.GEND_NEUTER ], code)
+    features[Feature.types.type] = new FeatureType(Feature.types.type,
+      [Constants.TYPE_REGULAR, Constants.TYPE_IRREGULAR], code)
+    features[Feature.types.person] = new FeatureType(Feature.types.person,
+      [Constants.ORD_1ST, Constants.ORD_2ND, Constants.ORD_3RD], code)
+    return features
   }
 
   /**

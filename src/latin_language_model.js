@@ -20,19 +20,36 @@ class LatinLanguageModel extends LanguageModel {
   }
 
   _initializeFeatures () {
-    let features = {}
+    let features = super._initializeFeatures()
     let code = this.toCode()
-    features[Feature.types.part] = new FeatureType(Feature.types.part, ['noun', 'adjective', 'verb'], code)
-    features[Feature.types.number] = new FeatureType(Feature.types.number, ['singular', 'plural'], code)
-    features[Feature.types.grmCase] = new FeatureType(Feature.types.grmCase, ['nominative', 'genitive', 'dative', 'accusative', 'ablative', 'locative', 'vocative'], code)
-    features[Feature.types.declension] = new FeatureType(Feature.types.declension, ['first', 'second', 'third', 'fourth', 'fifth'], code)
-    features[Feature.types.gender] = new FeatureType(Feature.types.gender, ['masculine', 'feminine', 'neuter'], code)
-    features[Feature.types.type] = new FeatureType(Feature.types.type, ['regular', 'irregular'], code)
-    features[Feature.types.tense] = new FeatureType(Feature.types.tense, ['present', 'imperfect', 'future', 'perfect', 'pluperfect', 'future perfect'], code)
-    features[Feature.types.voice] = new FeatureType(Feature.types.voice, ['passive', 'active'], code)
-    features[Feature.types.mood] = new FeatureType(Feature.types.mood, ['indicative', 'subjunctive'], code)
-    features[Feature.types.person] = new FeatureType(Feature.types.person, ['first', 'second', 'third'], code)
-    features[Feature.types.conjugation] = new FeatureType(Feature.types.conjugation, ['first', 'second', 'third', 'fourth'], code)
+    features[Feature.types.number] = new FeatureType(Feature.types.number, [Constants.NUM_SINGULAR, Constants.NUM_PLURAL], code)
+    features[Feature.types.grmCase] = new FeatureType(Feature.types.grmCase,
+      [ Constants.CASE_NOMINATIVE,
+        Constants.CASE_GENITIVE,
+        Constants.CASE_DATIVE,
+        Constants.CASE_ACCUSATIVE,
+        Constants.CASE_ABLATIVE,
+        Constants.CASE_LOCATIVE,
+        Constants.CASE_VOCATIVE
+      ], code)
+    features[Feature.types.declension] = new FeatureType(Feature.types.declension,
+      [ Constants.ORD_1ST, Constants.ORD_2ND, Constants.ORD_3RD, Constants.ORD_4TH, Constants.ORD_5TH ], code)
+    features[Feature.types.tense] = new FeatureType(Feature.types.tense,
+      [ Constants.TENSE_PRESENT,
+        Constants.TENSE_IMPERFECT,
+        Constants.TENSE_FUTURE,
+        Constants.TENSE_PERFECT,
+        Constants.TENSE_PLUPERFECT,
+        Constants.TENSE_FUTURE_PERFECT
+      ], code)
+    features[Feature.types.voice] = new FeatureType(Feature.types.voice, [Constants.VOICE_PASSIVE, Constants.VOICE_ACTIVE], code)
+    features[Feature.types.mood] = new FeatureType(Feature.types.mood, [Constants.MOOD_INDICATIVE, Constants.MOOD_SUBJUNCTIVE], code)
+    features[Feature.types.conjugation] = new FeatureType(Feature.types.conjugation,
+      [ Constants.ORD_1ST,
+        Constants.ORD_2ND,
+        Constants.ORD_3RD,
+        Constants.ORD_4TH
+      ], code)
     return features
   }
 
