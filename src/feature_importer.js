@@ -1,6 +1,15 @@
 class FeatureImporter {
-  constructor () {
+  constructor (languageModel = null) {
     this.hash = {}
+    // if we have a languageModel, fill with default features
+    if (languageModel) {
+      for (let featureType of Object.keys(languageModel.features)) {
+        console.log(languageModel.features[featureType])
+        for (let value of Object.keys(languageModel.features[featureType]._orderLookup)) {
+          this.map(value, value)
+        }
+      }
+    }
     return this
   }
 
