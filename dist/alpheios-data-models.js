@@ -607,15 +607,15 @@ class FeatureType {
      * Creates and returns a new importer with a specific name. If an importer with this name already exists,
      * an existing Importer object will be returned.
      * @param {string} name - A name of an importer object
-     * @param {LanguageModel} languageModel optional LanguageModel object for import defaults
+     * @param {object} defaultFeatures optional object of FeatureType defaults, keyed by type name
      * @returns {Importer} A new or existing Importer object that matches a name provided
      */
-  addImporter (name, languageModel = null) {
+  addImporter (name, defaultFeatures = {}) {
     if (!name) {
       throw new Error('Importer should have a non-empty name.')
     }
     this.importer = this.importer || {};
-    this.importer[name] = this.importer[name] || new FeatureImporter(languageModel.features);
+    this.importer[name] = this.importer[name] || new FeatureImporter(defaultFeatures);
     return this.importer[name]
   }
 
