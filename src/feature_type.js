@@ -71,6 +71,17 @@ class FeatureType {
     }
   }
 
+  getFromImporter (importerName, value) {
+    let mapped
+    if (this.importer[importerName]) {
+      mapped = this.importer[importerName].get(value)
+    }
+    if (!mapped) {
+      mapped = this.get(value)
+    }
+    return mapped
+  }
+
     /**
      * Creates and returns a new importer with a specific name. If an importer with this name already exists,
      * an existing Importer object will be returned.
@@ -82,7 +93,7 @@ class FeatureType {
       throw new Error('Importer should have a non-empty name.')
     }
     this.importer = this.importer || {}
-    this.importer[name] = this.importer[name] || new FeatureImporter(Object.keys(this._orderLookup))
+    this.importer[name] = this.importer[name] || new FeatureImporter()
     return this.importer[name]
   }
 

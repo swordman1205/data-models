@@ -6,16 +6,11 @@ describe('FeatureImporter object', () => {
   beforeAll(() => {
   })
 
-  test('Should be initialized properly with no defaults', () => {
+  test('Should be initialized properly', () => {
     let importer = new FeatureImporter()
     expect(importer).toEqual({
       hash: {}
     })
-  })
-
-  test('Should be initialized properly with defaults', () => {
-    let importer = new FeatureImporter(['1st'])
-    expect(importer.get('1st')).toEqual('1st')
   })
 
   test('map method should create proper mapping', () => {
