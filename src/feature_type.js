@@ -73,7 +73,7 @@ class FeatureType {
 
   getFromImporter (importerName, value) {
     let mapped
-    if (this.importer[importerName]) {
+    if (this.importer && this.importer[importerName]) {
       mapped = this.importer[importerName].get(value)
     }
     if (!mapped) {
