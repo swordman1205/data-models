@@ -1,7 +1,6 @@
 /* eslint-env jest */
 'use strict'
 import FeatureImporter from '../src/feature_importer.js'
-import LanguageModelFactory from '../src/language_model_factory.js'
 
 describe('FeatureImporter object', () => {
   beforeAll(() => {
@@ -15,8 +14,7 @@ describe('FeatureImporter object', () => {
   })
 
   test('Should be initialized properly with defaults', () => {
-    let features = LanguageModelFactory.getLanguageForCode('lat').features
-    let importer = new FeatureImporter(features)
+    let importer = new FeatureImporter(['1st'])
     expect(importer.get('1st')).toEqual('1st')
   })
 

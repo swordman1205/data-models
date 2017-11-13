@@ -480,13 +480,10 @@ Feature.types = {
 };
 
 class FeatureImporter {
-  constructor (defaultFeatures = {}) {
+  constructor (defaults = []) {
     this.hash = {};
-    // if we have them, fill with default features
-    for (let featureType of Object.keys(defaultFeatures)) {
-      for (let value of Object.keys(defaultFeatures[featureType]._orderLookup)) {
-        this.map(value, value);
-      }
+    for (let value of defaults) {
+      this.map(value, value);
     }
     return this
   }
@@ -607,15 +604,14 @@ class FeatureType {
      * Creates and returns a new importer with a specific name. If an importer with this name already exists,
      * an existing Importer object will be returned.
      * @param {string} name - A name of an importer object
-     * @param {object} defaultFeatures optional object of FeatureType defaults, keyed by type name
      * @returns {Importer} A new or existing Importer object that matches a name provided
      */
-  addImporter (name, defaultFeatures = {}) {
+  addImporter (name) {
     if (!name) {
       throw new Error('Importer should have a non-empty name.')
     }
     this.importer = this.importer || {};
-    this.importer[name] = this.importer[name] || new FeatureImporter(defaultFeatures);
+    this.importer[name] = this.importer[name] || new FeatureImporter(Object.keys(this._orderLookup));
     return this.importer[name]
   }
 

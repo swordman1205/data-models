@@ -1,11 +1,8 @@
 class FeatureImporter {
-  constructor (defaultFeatures = {}) {
+  constructor (defaults = []) {
     this.hash = {}
-    // if we have them, fill with default features
-    for (let featureType of Object.keys(defaultFeatures)) {
-      for (let value of Object.keys(defaultFeatures[featureType]._orderLookup)) {
-        this.map(value, value)
-      }
+    for (let value of defaults) {
+      this.map(value, value)
     }
     return this
   }
