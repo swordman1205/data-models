@@ -7,16 +7,16 @@ describe('FeatureImporter object', () => {
   beforeAll(() => {
   })
 
-  test('Should be initialized properly with no languageModel', () => {
+  test('Should be initialized properly with no defaults', () => {
     let importer = new FeatureImporter()
     expect(importer).toEqual({
       hash: {}
     })
   })
 
-  test('Should be initialized properly with alanguageModel', () => {
-    let languageModel = LanguageModelFactory.getLanguageForCode('lat')
-    let importer = new FeatureImporter(languageModel)
+  test('Should be initialized properly with defaults', () => {
+    let features = LanguageModelFactory.getLanguageForCode('lat').features
+    let importer = new FeatureImporter(features)
     expect(importer.get('1st')).toEqual('1st')
   })
 

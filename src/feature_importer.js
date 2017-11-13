@@ -1,13 +1,10 @@
 class FeatureImporter {
-  constructor (languageModel = null) {
+  constructor (defaultFeatures = {}) {
     this.hash = {}
-    // if we have a languageModel, fill with default features
-    if (languageModel) {
-      for (let featureType of Object.keys(languageModel.features)) {
-        console.log(languageModel.features[featureType])
-        for (let value of Object.keys(languageModel.features[featureType]._orderLookup)) {
-          this.map(value, value)
-        }
+    // if we have them, fill with default features
+    for (let featureType of Object.keys(defaultFeatures)) {
+      for (let value of Object.keys(defaultFeatures[featureType]._orderLookup)) {
+        this.map(value, value)
       }
     }
     return this

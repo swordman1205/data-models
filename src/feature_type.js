@@ -1,4 +1,5 @@
 import Feature from './feature.js'
+import FeatureImporter from './feature_importer.js'
 
 /**
  * Definition class for a (grammatical) feature. Stores type information and (optionally) all possible values of the feature.
@@ -74,14 +75,15 @@ class FeatureType {
      * Creates and returns a new importer with a specific name. If an importer with this name already exists,
      * an existing Importer object will be returned.
      * @param {string} name - A name of an importer object
+     * @param {LanguageModel} languageModel optional LanguageModel object for import defaults
      * @returns {Importer} A new or existing Importer object that matches a name provided
      */
-  addImporter (name) {
+  addImporter (name, languageModel = null) {
     if (!name) {
       throw new Error('Importer should have a non-empty name.')
     }
     this.importer = this.importer || {}
-    this.importer[name] = this.importer[name] || new Importer()
+    this.importer[name] = this.importer[name] || new FeatureImporter(languageModel.features)
     return this.importer[name]
   }
 
@@ -192,57 +194,6 @@ class FeatureType {
         this._orderLookup[element.value] = index
         this._orderIndex[index] = element.value
       }
-    }
-  }
-}
-
-/**
- * This is a hash table that maps values to be imported from an external file or service to library standard values.
- */
-class Importer {
-  constructor () {
-    this.hash = {}
-    return this
-  }
-
-    /**
-     * Sets mapping between external imported value and one or more library standard values. If an importedValue
-     * is already in a hash table, old libraryValue will be overwritten with the new one.
-     * @param {string} importedValue - External value
-     * @param {Object | Object[] | string | string[]} libraryValue - Library standard value
-     */
-  map (importedValue, libraryValue) {
-    if (!importedValue) {
-      throw new Error('Imported value should not be empty.')
-    }
-
-    if (!libraryValue) {
-      throw new Error('Library value should not be empty.')
-    }
-
-    this.hash[importedValue] = libraryValue
-    return this
-  }
-
-    /**
-     * Checks if value is in a map.
-     * @param {string} importedValue - A value to test.
-     * @returns {boolean} - Tru if value is in a map, false otherwise.
-     */
-  has (importedValue) {
-    return this.hash.hasOwnProperty(importedValue)
-  }
-
-    /**
-     * Returns one or more library standard values that match an external value
-     * @param {string} importedValue - External value
-     * @returns {Object | string} One or more of library standard values
-     */
-  get (importedValue) {
-    if (this.has(importedValue)) {
-      return this.hash[importedValue]
-    } else {
-      throw new Error('A value "' + importedValue + '" is not found in the importer.')
     }
   }
 }
