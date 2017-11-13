@@ -15,7 +15,8 @@ export default {
   targets: [
     {
       dest: 'dist/alpheios-data-models.js',
-      format: 'es'
+      format: 'es',
+      sourceMap: true
     }
   ]
 }

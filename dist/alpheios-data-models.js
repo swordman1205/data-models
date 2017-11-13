@@ -1458,3 +1458,4 @@ class Homonym {
 }
 
 export { constants as Constants, Feature, FeatureType, FeatureList, FeatureImporter, Inflection, LanguageModelFactory, Homonym, Lexeme, Lemma, LatinLanguageModel, GreekLanguageModel, ArabicLanguageModel };
+//# sourceMappingURL=alpheios-data-models.js.map
