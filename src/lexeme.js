@@ -10,10 +10,9 @@ class Lexeme {
      * Initializes a Lexeme object.
      * @param {Lemma} lemma - A lemma object.
      * @param {Inflection[]} inflections - An array of inflections.
-     * @param {[Lemma]} altLemmas - An array of alternate lemmas
      * @param {string} meaning - a short definition
      */
-  constructor (lemma, inflections, altLemmas = [], meaning = '') {
+  constructor (lemma, inflections, meaning = '') {
     if (!lemma) {
       throw new Error('Lemma should not be empty.')
     }
@@ -38,7 +37,6 @@ class Lexeme {
 
     this.lemma = lemma
     this.inflections = inflections
-    this.altLemmas = altLemmas
     this.meaning = meaning
   }
 
