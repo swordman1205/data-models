@@ -2,16 +2,18 @@ import Lemma from './lemma.js'
 import Inflection from './inflection.js'
 
 /**
- * A basic unit of lexical meaning. Contains a Lemma object and one or more Inflection objects.
+ * A basic unit of lexical meaning. Contains a primary Lemma object, one or more Inflection objects
+ * and optional alternate Lemmas
  */
 class Lexeme {
     /**
      * Initializes a Lexeme object.
      * @param {Lemma} lemma - A lemma object.
      * @param {Inflection[]} inflections - An array of inflections.
+     * @param {[Lemma]} altLemmas - An array of alternate lemmas
      * @param {string} meaning - a short definition
      */
-  constructor (lemma, inflections, meaning = '') {
+  constructor (lemma, inflections, altLemmas = [], meaning = '') {
     if (!lemma) {
       throw new Error('Lemma should not be empty.')
     }
@@ -36,6 +38,7 @@ class Lexeme {
 
     this.lemma = lemma
     this.inflections = inflections
+    this.altLemmas = altLemmas
     this.meaning = meaning
   }
 
