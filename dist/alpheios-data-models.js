@@ -472,85 +472,6 @@ class DefinitionSet {
   }
 }
 
-/**
- * Wrapper class for a (grammatical, usually) feature, such as part of speech or declension. Keeps both value and type information.
- */
-class Feature {
-    /**
-     * Initializes a Feature object
-     * @param {string | string[]} value - A single feature value or, if this feature could have multiple
-     * values, an array of values.
-     * @param {string} type - A type of the feature, allowed values are specified in 'types' object.
-     * @param {string} language - A language of a feature, allowed values are specified in 'languages' object.
-     */
-  constructor (value, type, language) {
-    if (!Feature.types.isAllowed(type)) {
-      throw new Error('Features of "' + type + '" type are not supported.')
-    }
-    if (!value) {
-      throw new Error('Feature should have a non-empty value.')
-    }
-    if (!type) {
-      throw new Error('Feature should have a non-empty type.')
-    }
-    if (!language) {
-      throw new Error('Feature constructor requires a language')
-    }
-    this.value = value;
-    this.type = type;
-    this.language = language;
-  };
-
-  isEqual (feature) {
-    if (Array.isArray(feature.value)) {
-      if (!Array.isArray(this.value) || this.value.length !== feature.value.length) {
-        return false
-      }
-      let equal = this.type === feature.type && this.language === feature.language;
-      equal = equal && this.value.every(function (element, index) {
-        return element === feature.value[index]
-      });
-      return equal
-    } else {
-      return this.value === feature.value && this.type === feature.type && this.language === feature.language
-    }
-  }
-}
-// Should have no spaces in values in order to be used in HTML templates
-Feature.types = {
-  word: 'word',
-  part: 'part of speech', // Part of speech
-  number: 'number',
-  grmCase: 'case',
-  declension: 'declension',
-  gender: 'gender',
-  type: 'type',
-  conjugation: 'conjugation',
-  comparison: 'comparison',
-  tense: 'tense',
-  voice: 'voice',
-  mood: 'mood',
-  person: 'person',
-  frequency: 'frequency', // How frequent this word is
-  meaning: 'meaning', // Meaning of a word
-  source: 'source', // Source of word definition
-  footnote: 'footnote', // A footnote for a word's ending
-  dialect: 'dialect', // a dialect iderntifier
-  note: 'note', // a general note
-  pronunciation: 'pronunciation',
-  area: 'area',
-  geo: 'geo', // geographical data
-  kind: 'kind', // verb kind informatin
-  derivtype: 'derivtype',
-  stemtype: 'stemtype',
-  morph: 'morph', // general morphological information
-  var: 'var', // variance?
-  isAllowed (value) {
-    let v = `${value}`;
-    return Object.values(this).includes(v)
-  }
-};
-
 class FeatureImporter {
   constructor (defaults = []) {
     this.hash = {};
@@ -636,6 +557,7 @@ class FeatureType {
 
     this.type = type;
     this.language = language;
+    this.unrestrictedValue = values.length === 1 && values[0] === '*';
 
         /*
          This is a sort order index for a grammatical feature values. It is determined by the order of values in
@@ -662,11 +584,12 @@ class FeatureType {
      * Return a Feature with an arbitrary value. This value would not be necessarily present among FeatureType values.
      * This can be especially useful for features that do not set: a list of predefined values, such as footnotes.
      * @param value
+     * @param {int} sortOrder
      * @returns {Feature}
      */
-  get (value) {
+  get (value, sortOrder = 1) {
     if (value) {
-      return new Feature(value, this.type, this.language)
+      return new Feature(value, this.type, this.language, sortOrder)
     } else {
       throw new Error('A non-empty value should be provided.')
     }
@@ -810,65 +733,6 @@ class FeatureType {
 }
 
 /**
- * A list of grammatical features that characterizes a language unit. Has some additional service methods,
- * compared with standard storage objects.
- */
-class FeatureList {
-    /**
-     * Initializes a feature list.
-     * @param {FeatureType[]} features - Features that build the list (optional, can be set later).
-     */
-  constructor (features = []) {
-    this._features = [];
-    this._types = {};
-    this.add(features);
-  }
-
-  add (features) {
-    if (!features || !Array.isArray(features)) {
-      throw new Error('Features must be defined and must come in an array.')
-    }
-
-    for (let feature of features) {
-      this._features.push(feature);
-      this._types[feature.type] = feature;
-    }
-  }
-
-    /**
-     * Returns an array of grouping features.
-     * @returns {FeatureType[]} - An array of grouping features.
-     */
-  get items () {
-    return this._features
-  }
-
-  forEach (callback) {
-    this._features.forEach(callback);
-  }
-
-    /**
-     * Returns a feature of a particular type. If such feature does not exist in a list, returns undefined.
-     * @param {string} type - Feature type as defined in `types` object.
-     * @return {FeatureType | undefined} A feature if a particular type if contains it. Undefined otherwise.
-     */
-  ofType (type) {
-    if (this.hasType(type)) {
-      return this._types[type]
-    }
-  }
-
-    /**
-     * Checks whether a feature list has a feature of a specific type.
-     * @param {string} type - Feature type as defined in `types` object.
-     * @return {boolean} Whether a feature list has a feature of a particular type.
-     */
-  hasType (type) {
-    return this._types.hasOwnProperty(type)
-  }
-}
-
-/**
  * @class  LanguageModel is the base class for language-specific behavior
  */
 class LanguageModel {
@@ -910,6 +774,19 @@ class LanguageModel {
       [TYPE_REGULAR, TYPE_IRREGULAR], code);
     features[Feature.types.person] = new FeatureType(Feature.types.person,
       [ORD_1ST, ORD_2ND, ORD_3RD], code);
+    // some general, non-language specific grammatical features
+    features[Feature.types.area] = new FeatureType(Feature.types.area,
+      ['*'], code);
+    features[Feature.types.source] = new FeatureType(Feature.types.source,
+      ['*'], code);
+    features[Feature.types.frequency] = new FeatureType(Feature.types.frequency,
+      ['*'], code);
+    features[Feature.types.geo] = new FeatureType(Feature.types.geo,
+      ['*'], code);
+    features[Feature.types.source] = new FeatureType(Feature.types.source,
+      ['*'], code);
+    features[Feature.types.pronunciation] = new FeatureType(Feature.types.pronunciation,
+      ['*'], code);
     return features
   }
 
@@ -1539,6 +1416,149 @@ class LanguageModelFactory {
 }
 
 /**
+ * Wrapper class for a (grammatical, usually) feature, such as part of speech or declension. Keeps both value and type information.
+ */
+class Feature {
+    /**
+     * Initializes a Feature object
+     * @param {string | string[]} value - A single feature value or, if this feature could have multiple
+     * values, an array of values.
+     * @param {string} type - A type of the feature, allowed values are specified in 'types' object.
+     * @param {string} language - A language of a feature, allowed values are specified in 'languages' object.
+     * @param {int} sortOrder - an integer used for sorting
+     */
+  constructor (value, type, language, sortOrder = 1) {
+    if (!Feature.types.isAllowed(type)) {
+      throw new Error('Features of "' + type + '" type are not supported.')
+    }
+    if (!value) {
+      throw new Error('Feature should have a non-empty value.')
+    }
+    if (!type) {
+      throw new Error('Feature should have a non-empty type.')
+    }
+    if (!language) {
+      throw new Error('Feature constructor requires a language')
+    }
+    this.value = value;
+    this.type = type;
+    this.language = language;
+    this.languageCode = language;
+    this.languageID = LanguageModelFactory.getLanguageIdFromCode(this.languageCode);
+    this.sortOrder = sortOrder;
+  };
+
+  isEqual (feature) {
+    if (Array.isArray(feature.value)) {
+      if (!Array.isArray(this.value) || this.value.length !== feature.value.length) {
+        return false
+      }
+      let equal = this.type === feature.type && this.language === feature.language;
+      equal = equal && this.value.every(function (element, index) {
+        return element === feature.value[index]
+      });
+      return equal
+    } else {
+      return this.value === feature.value && this.type === feature.type && this.language === feature.language
+    }
+  }
+}
+// Should have no spaces in values in order to be used in HTML templates
+Feature.types = {
+  word: 'word',
+  part: 'part of speech', // Part of speech
+  number: 'number',
+  grmCase: 'case',
+  declension: 'declension',
+  gender: 'gender',
+  type: 'type',
+  conjugation: 'conjugation',
+  comparison: 'comparison',
+  tense: 'tense',
+  voice: 'voice',
+  mood: 'mood',
+  person: 'person',
+  frequency: 'frequency', // How frequent this word is
+  meaning: 'meaning', // Meaning of a word
+  source: 'source', // Source of word definition
+  footnote: 'footnote', // A footnote for a word's ending
+  dialect: 'dialect', // a dialect iderntifier
+  note: 'note', // a general note
+  pronunciation: 'pronunciation',
+  age: 'age',
+  area: 'area',
+  geo: 'geo', // geographical data
+  kind: 'kind', // verb kind informatin
+  derivtype: 'derivtype',
+  stemtype: 'stemtype',
+  morph: 'morph', // general morphological information
+  var: 'var', // variance?
+  isAllowed (value) {
+    let v = `${value}`;
+    return Object.values(this).includes(v)
+  }
+};
+
+/**
+ * A list of grammatical features that characterizes a language unit. Has some additional service methods,
+ * compared with standard storage objects.
+ */
+class FeatureList {
+    /**
+     * Initializes a feature list.
+     * @param {FeatureType[]} features - Features that build the list (optional, can be set later).
+     */
+  constructor (features = []) {
+    this._features = [];
+    this._types = {};
+    this.add(features);
+  }
+
+  add (features) {
+    if (!features || !Array.isArray(features)) {
+      throw new Error('Features must be defined and must come in an array.')
+    }
+
+    for (let feature of features) {
+      this._features.push(feature);
+      this._types[feature.type] = feature;
+    }
+  }
+
+    /**
+     * Returns an array of grouping features.
+     * @returns {FeatureType[]} - An array of grouping features.
+     */
+  get items () {
+    return this._features
+  }
+
+  forEach (callback) {
+    this._features.forEach(callback);
+  }
+
+    /**
+     * Returns a feature of a particular type. If such feature does not exist in a list, returns undefined.
+     * @param {string} type - Feature type as defined in `types` object.
+     * @return {FeatureType | undefined} A feature if a particular type if contains it. Undefined otherwise.
+     */
+  ofType (type) {
+    if (this.hasType(type)) {
+      return this._types[type]
+    }
+  }
+
+    /**
+     * Checks whether a feature list has a feature of a specific type.
+     * @param {string} type - Feature type as defined in `types` object.
+     * @return {boolean} Whether a feature list has a feature of a particular type.
+     */
+  hasType (type) {
+    return this._types.hasOwnProperty(type)
+  }
+}
+
+/**
  * Lemma, a canonical form of a word.
  */
 class Lemma {
@@ -1547,8 +1567,9 @@ class Lemma {
    * @param {string} word - A word.
    * @param {string} language - A language code of a word. TODO: Switch to using Language ID instead
    * @param {Array[string]} principalParts - the principalParts of a lemma
+   * @param {Object} features - the grammatical features of a lemma
    */
-  constructor (word, language, principalParts = []) {
+  constructor (word, language, principalParts = [], features = {}) {
     if (!word) {
       throw new Error('Word should not be empty.')
     }
@@ -1566,10 +1587,41 @@ class Lemma {
     this.languageCode = language;
     this.languageID = LanguageModelFactory.getLanguageIdFromCode(this.languageCode);
     this.principalParts = principalParts;
+    this.features = {};
   }
 
   static readObject (jsonObject) {
-    return new Lemma(jsonObject.word, jsonObject.language)
+    return new Lemma(jsonObject.word, jsonObject.language, jsonObject.principalParts, jsonObject.pronunciation)
+  }
+
+  /**
+   * Sets a grammatical feature for a lemma. Some features can have multiple values, In this case
+   * an array of Feature objects will be provided.
+   * Values are taken from features and stored in a 'feature.type' property as an array of values.
+   * @param {Feature | Feature[]} data
+   */
+  set feature (data) {
+    if (!data) {
+      throw new Error('feature data cannot be empty.')
+    }
+    if (!Array.isArray(data)) {
+      data = [data];
+    }
+
+    let type = data[0].type;
+    this.features[type] = [];
+    for (let element of data) {
+      if (!(element instanceof Feature)) {
+        throw new Error('feature data must be a Feature object.')
+      }
+
+      if (element.languageID !== this.languageID) {
+        throw new Error('Language "' + element.languageID + '" of a feature does not match a language "' +
+                this.languageID + '" of a Lemma object.')
+      }
+
+      this.features[type].push(element);
+    }
   }
 }
 
@@ -1675,7 +1727,7 @@ class Inflection {
 
 /**
  * A basic unit of lexical meaning. Contains a primary Lemma object, one or more Inflection objects
- * and optional alternate Lemmas
+ * and a DefinitionSet
  */
 class Lexeme {
     /**
@@ -1683,6 +1735,7 @@ class Lexeme {
      * @param {Lemma} lemma - A lemma object.
      * @param {Inflection[]} inflections - An array of inflections.
      * @param {DefinitionSet} meaning - A set of definitions.
+
      */
   constructor (lemma, inflections, meaning = null) {
     if (!lemma) {
@@ -1722,6 +1775,24 @@ class Lexeme {
     let lexeme = new Lexeme(lemma, inflections);
     lexeme.meaning = DefinitionSet.readObject(jsonObject.meaning);
     return lexeme
+  }
+
+  static getSortByLemmaFeature (featureName) {
+    return (a, b) => {
+      console.log(`Sort by ${featureName}`, a, b);
+
+      if (a.lemma.features[featureName] && b.lemma.features[featureName]) {
+        if (a.lemma.features[featureName][0].sortOrder < b.lemma.features[featureName][0].sortOrder) {
+          return -1
+        } else if (a.lemma.features[featureName][0].sortOrder > b.lemma.features[featureName][0].sortOrder) {
+          return 1
+        } else {
+          return 0
+        }
+      } else {
+        return 0
+      }
+    }
   }
 }
 

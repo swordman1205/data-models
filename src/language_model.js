@@ -44,6 +44,19 @@ class LanguageModel {
       [Constants.TYPE_REGULAR, Constants.TYPE_IRREGULAR], code)
     features[Feature.types.person] = new FeatureType(Feature.types.person,
       [Constants.ORD_1ST, Constants.ORD_2ND, Constants.ORD_3RD], code)
+    // some general, non-language specific grammatical features
+    features[Feature.types.area] = new FeatureType(Feature.types.area,
+      ['*'], code)
+    features[Feature.types.source] = new FeatureType(Feature.types.source,
+      ['*'], code)
+    features[Feature.types.frequency] = new FeatureType(Feature.types.frequency,
+      ['*'], code)
+    features[Feature.types.geo] = new FeatureType(Feature.types.geo,
+      ['*'], code)
+    features[Feature.types.source] = new FeatureType(Feature.types.source,
+      ['*'], code)
+    features[Feature.types.pronunciation] = new FeatureType(Feature.types.pronunciation,
+      ['*'], code)
     return features
   }
 

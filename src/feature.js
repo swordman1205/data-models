@@ -1,4 +1,4 @@
-
+import LMF from './language_model_factory.js'
 /**
  * Wrapper class for a (grammatical, usually) feature, such as part of speech or declension. Keeps both value and type information.
  */
@@ -9,8 +9,9 @@ class Feature {
      * values, an array of values.
      * @param {string} type - A type of the feature, allowed values are specified in 'types' object.
      * @param {string} language - A language of a feature, allowed values are specified in 'languages' object.
+     * @param {int} sortOrder - an integer used for sorting
      */
-  constructor (value, type, language) {
+  constructor (value, type, language, sortOrder = 1) {
     if (!Feature.types.isAllowed(type)) {
       throw new Error('Features of "' + type + '" type are not supported.')
     }
@@ -26,6 +27,9 @@ class Feature {
     this.value = value
     this.type = type
     this.language = language
+    this.languageCode = language
+    this.languageID = LMF.getLanguageIdFromCode(this.languageCode)
+    this.sortOrder = sortOrder
   };
 
   isEqual (feature) {
@@ -65,6 +69,7 @@ Feature.types = {
   dialect: 'dialect', // a dialect iderntifier
   note: 'note', // a general note
   pronunciation: 'pronunciation',
+  age: 'age',
   area: 'area',
   geo: 'geo', // geographical data
   kind: 'kind', // verb kind informatin

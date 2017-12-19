@@ -4,7 +4,7 @@ import DefinitionSet from './definition-set'
 
 /**
  * A basic unit of lexical meaning. Contains a primary Lemma object, one or more Inflection objects
- * and optional alternate Lemmas
+ * and a DefinitionSet
  */
 class Lexeme {
     /**
@@ -12,6 +12,7 @@ class Lexeme {
      * @param {Lemma} lemma - A lemma object.
      * @param {Inflection[]} inflections - An array of inflections.
      * @param {DefinitionSet} meaning - A set of definitions.
+
      */
   constructor (lemma, inflections, meaning = null) {
     if (!lemma) {
@@ -51,6 +52,22 @@ class Lexeme {
     let lexeme = new Lexeme(lemma, inflections)
     lexeme.meaning = DefinitionSet.readObject(jsonObject.meaning)
     return lexeme
+  }
+
+  static getSortByLemmaFeature (featureName) {
+    return (a, b) => {
+      if (a.lemma.features[featureName] && b.lemma.features[featureName]) {
+        if (a.lemma.features[featureName][0].sortOrder < b.lemma.features[featureName][0].sortOrder) {
+          return -1
+        } else if (a.lemma.features[featureName][0].sortOrder > b.lemma.features[featureName][0].sortOrder) {
+          return 1
+        } else {
+          return 0
+        }
+      } else {
+        return 0
+      }
+    }
   }
 }
 export default Lexeme

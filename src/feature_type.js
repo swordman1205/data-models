@@ -35,6 +35,7 @@ class FeatureType {
 
     this.type = type
     this.language = language
+    this.unrestrictedValue = values.length === 1 && values[0] === '*'
 
         /*
          This is a sort order index for a grammatical feature values. It is determined by the order of values in
@@ -61,11 +62,12 @@ class FeatureType {
      * Return a Feature with an arbitrary value. This value would not be necessarily present among FeatureType values.
      * This can be especially useful for features that do not set: a list of predefined values, such as footnotes.
      * @param value
+     * @param {int} sortOrder
      * @returns {Feature}
      */
-  get (value) {
+  get (value, sortOrder = 1) {
     if (value) {
-      return new Feature(value, this.type, this.language)
+      return new Feature(value, this.type, this.language, sortOrder)
     } else {
       throw new Error('A non-empty value should be provided.')
     }
