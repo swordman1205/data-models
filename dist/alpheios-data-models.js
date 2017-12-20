@@ -787,6 +787,8 @@ class LanguageModel {
       ['*'], code);
     features[Feature.types.pronunciation] = new FeatureType(Feature.types.pronunciation,
       ['*'], code);
+    features[Feature.types.kind] = new FeatureType(Feature.types.kind,
+      ['*'], code);
     return features
   }
 
@@ -1777,18 +1779,38 @@ class Lexeme {
     return lexeme
   }
 
-  static getSortByLemmaFeature (featureName) {
+  /**
+   * Get a sort function for an array of lexemes which applies a primary and secondary
+   * sort logic using the sort order specified for each feature. Sorts in descending order -
+   * higher sort order means it should come first
+   * @param {string} primary feature name to use as primary sort key
+   * @param {string} secondary feature name to use as secondary sort key
+   * @returns {Function} function which can be passed to Array.sort
+   */
+  static getSortByTwoLemmaFeatures (primary, secondary) {
     return (a, b) => {
-      console.log(`Sort by ${featureName}`, a, b);
-
-      if (a.lemma.features[featureName] && b.lemma.features[featureName]) {
-        if (a.lemma.features[featureName][0].sortOrder < b.lemma.features[featureName][0].sortOrder) {
-          return -1
-        } else if (a.lemma.features[featureName][0].sortOrder > b.lemma.features[featureName][0].sortOrder) {
+      if (a.lemma.features[primary] && b.lemma.features[primary]) {
+        if (a.lemma.features[primary][0].sortOrder < b.lemma.features[primary][0].sortOrder) {
           return 1
-        } else {
-          return 0
+        } else if (a.lemma.features[primary][0].sortOrder > b.lemma.features[primary][0].sortOrder) {
+          return -1
+        } else if (a.lemma.features[secondary] && b.lemma.features[secondary]) {
+          if (a.lemma.features[secondary][0].sortOrder < b.lemma.features[secondary][0].sortOrder) {
+            return 1
+          } else if (a.lemma.features[secondary][0].sortOrder > b.lemma.features[secondary][0].sortOrder) {
+            return -1
+          } else if (a.lemma.features[secondary] && !b.lemma.features[secondary]) {
+            return -1
+          } else if (!a.lemma.features[secondary] && b.lemma.features[secondary]) {
+            return 1
+          } else {
+            return 0
+          }
         }
+      } else if (a.lemma.features[primary] && !b.lemma.features[primary]) {
+        return -1
+      } else if (!a.lemma.features[primary] && b.lemma.features[primary]) {
+        return 1
       } else {
         return 0
       }

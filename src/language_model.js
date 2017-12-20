@@ -57,6 +57,8 @@ class LanguageModel {
       ['*'], code)
     features[Feature.types.pronunciation] = new FeatureType(Feature.types.pronunciation,
       ['*'], code)
+    features[Feature.types.kind] = new FeatureType(Feature.types.kind,
+      ['*'], code)
     return features
   }
 
