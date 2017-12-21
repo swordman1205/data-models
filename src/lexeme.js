@@ -42,6 +42,11 @@ class Lexeme {
     this.meaning = meaning || new DefinitionSet(this.lemma.word, this.lemma.languageID)
   }
 
+  getGroupedInflections () {
+    console.log(Inflection.groupForDisplay(this.inflections))
+    return Inflection.groupForDisplay(this.inflections)
+  }
+
   static readObject (jsonObject) {
     let lemma = Lemma.readObject(jsonObject.lemma)
     let inflections = []

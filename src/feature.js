@@ -46,6 +46,10 @@ class Feature {
       return this.value === feature.value && this.type === feature.type && this.language === feature.language
     }
   }
+
+  toString (feature) {
+    return this.value
+  }
 }
 // Should have no spaces in values in order to be used in HTML templates
 Feature.types = {

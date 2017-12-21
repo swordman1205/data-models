@@ -61,6 +61,47 @@ describe('Inflection object', () => {
             .toThrowError(/not match/)
   })
 
+  test('groupForDisplay', () => {
+    let one = new Inflection('nat', 'lat', 'urae', null, null)
+    let two = new Inflection('nat', 'lat', 'urae', null, null)
+    let three = new Inflection('nat', 'lat', 'urae', null, null)
+    let four = new Inflection('natur', 'lat', 'ae', null, null)
+    let five = new Inflection('natur', 'lat', 'ae', null, null)
+    let six = new Inflection('natur', 'lat', 'ae', null, null)
+    one.feature = new Feature('verb', Feature.types.part, 'lat', 3)
+    one.feature = new Feature('present', Feature.types.tense, 'lat')
+    two.feature = new Feature('verb', Feature.types.part, 'lat', 3)
+    two.feature = new Feature('present', Feature.types.tense, 'lat')
+    three.feature = new Feature('verb', Feature.types.part, 'lat', 3)
+    three.feature = new Feature('future', Feature.types.tense, 'lat')
+    four.feature = new Feature('noun', Feature.types.part, 'lat', 5)
+    four.feature = new Feature('nominative', Feature.types.grmCase, 'lat', 5)
+    four.feature = new Feature('singular', Feature.types.number, 'lat')
+    five.feature = new Feature('noun', Feature.types.part, 'lat', 5)
+    five.feature = new Feature('accusative', Feature.types.grmCase, 'lat', 5)
+    five.feature = new Feature('singular', Feature.types.number, 'lat')
+    six.feature = new Feature('noun', Feature.types.part, 'lat', 5)
+    six.feature = new Feature('accusative', Feature.types.grmCase, 'lat', 5)
+    six.feature = new Feature('plural', Feature.types.number, 'lat')
+    let inflections = [one, two, three, four, five, six]
+    let grouped = Inflection.groupForDisplay(inflections)
+    expect(grouped[1]).toEqual([[one, two], [three]])
+    expect(grouped[0]).toEqual([[four, five], [six]])
+  })
+
+  test('featureMatch', () => {
+    let one = new Inflection('nat', 'lat', 'urae', null, null)
+    one.feature = [new Feature('feminine', Feature.types.gender, 'lat'),
+      new Feature('masculine', Feature.types.gender, 'lat')]
+    one.feature = new Feature('verb', Feature.types.part, 'lat')
+    console.log(one)
+    let two = new Inflection('nat', 'lat', 'urae', null, null)
+    two.feature = new Feature('feminine', Feature.types.gender, 'lat')
+    two.feature = new Feature('noun', Feature.types.part, 'lat')
+    expect(one.featureMatch(Feature.types.gender, two)).toEqual(true)
+    expect(one.featureMatch(Feature.types.part, two)).toEqual(false)
+  })
+
   afterAll(() => {
         // Clean a test environment up
     inflection = undefined
