@@ -58,6 +58,11 @@ describe('Feature object', () => {
     expect(`${f}`).toEqual(featureValue1)
   })
 
+  test('toLocaleStringAbbr returns value', () => {
+    let f = new Feature('feminine', Feature.types.gender, 'lat')
+    expect(f.toLocaleStringAbbr('en')).toEqual('f')
+  })
+
   afterAll(() => {
         // Clean a test environment up
     featureGreek1 = undefined

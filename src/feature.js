@@ -1,4 +1,5 @@
 import LMF from './language_model_factory.js'
+import * as i18n from './i18n.js'
 /**
  * Wrapper class for a (grammatical, usually) feature, such as part of speech or declension. Keeps both value and type information.
  */
@@ -33,6 +34,7 @@ class Feature {
   };
 
   isEqual (feature) {
+    console.log('Compare', this, feature)
     if (Array.isArray(feature.value)) {
       if (!Array.isArray(this.value) || this.value.length !== feature.value.length) {
         return false
@@ -47,8 +49,21 @@ class Feature {
     }
   }
 
-  toString (feature) {
-    return this.value
+  toString () {
+    if (Array.isArray(this.value)) {
+      return this.value.join(',')
+    } else {
+      return this.value
+    }
+  }
+
+  toLocaleStringAbbr (lang = 'en') {
+    // TODO this should be using an i18n library
+    if (Array.isArray(this.value)) {
+      return this.value.map((v) => this.toLocaleStringAbbr(v, lang))
+    } else {
+      return i18n.i18n[lang][this.value].abbr
+    }
   }
 }
 // Should have no spaces in values in order to be used in HTML templates

@@ -98,17 +98,6 @@ class Inflection {
     }
   }
 
-  featureMatch (featureName, otherInflection) {
-    let matches = false
-    for (let f of this[featureName]) {
-      if (otherInflection[featureName] && otherInflection[featureName].filter((x) => x.isEqual(f)).length > 0) {
-        matches = true
-        break
-      }
-    }
-    return matches
-  }
-
   static groupForDisplay (inflections) {
     let grouped = new Map()
 
