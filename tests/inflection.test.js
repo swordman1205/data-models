@@ -68,12 +68,24 @@ describe('Inflection object', () => {
     let four = new Inflection('natur', 'lat', 'ae', null, null)
     let five = new Inflection('natur', 'lat', 'ae', null, null)
     let six = new Inflection('natur', 'lat', 'ae', null, null)
+
     one.feature = new Feature('verb', Feature.types.part, 'lat', 3)
     one.feature = new Feature('present', Feature.types.tense, 'lat')
+    one.feature = new Feature('feminine', Feature.types.gender, 'lat')
+    one.feature = new Feature('active', Feature.types.voice, 'lat')
+    one.feature = new Feature('indicative', Feature.types.mood, 'lat')
+
     two.feature = new Feature('verb', Feature.types.part, 'lat', 3)
     two.feature = new Feature('present', Feature.types.tense, 'lat')
+    two.feature = new Feature('feminine', Feature.types.gender, 'lat')
+    two.feature = new Feature('passive', Feature.types.voice, 'lat')
+    two.feature = new Feature('indicative', Feature.types.mood, 'lat')
+
     three.feature = new Feature('verb', Feature.types.part, 'lat', 3)
     three.feature = new Feature('future', Feature.types.tense, 'lat')
+    three.feature = new Feature('masculine', Feature.types.gender, 'lat')
+    three.feature = new Feature('subjunctive', Feature.types.mood, 'lat')
+
     four.feature = new Feature('noun', Feature.types.part, 'lat', 5)
     four.feature = new Feature('nominative', Feature.types.grmCase, 'lat', 5)
     four.feature = new Feature('singular', Feature.types.number, 'lat')
@@ -85,8 +97,28 @@ describe('Inflection object', () => {
     six.feature = new Feature('plural', Feature.types.number, 'lat')
     let inflections = [one, two, three, four, five, six]
     let grouped = Inflection.groupForDisplay(inflections)
-    expect(grouped[1]).toEqual([[one, two], [three]])
-    expect(grouped[0]).toEqual([[four, five], [six]])
+    expect(grouped.length).toEqual(2)
+    console.log(grouped[0])
+    console.log(grouped[1])
+    let verbs = grouped.filter((x) => x.groupingKey[Feature.types.part] === 'verb')
+    let nouns = grouped.filter((x) => x.groupingKey[Feature.types.part] === 'noun')
+    expect(verbs.length).toEqual(1)
+    expect(nouns.length).toEqual(1)
+    expect(verbs[0].inflections.length).toEqual(2) // present and future groups
+    expect(nouns[0].inflections.length).toEqual(2) // singular and plural groups
+    let future = verbs[0].inflections.filter((x) => x.groupingKey[Feature.types.tense] === 'future')
+    let present = verbs[0].inflections.filter((x) => x.groupingKey[Feature.types.tense] === 'present')
+    expect(future[0].inflections.length).toEqual(1)
+    expect(present[0].inflections.length).toEqual(2)
+    let active = present[0].inflections.filter((x) => x.groupingKey[Feature.types.voice] === 'active')
+    let passive = present[0].inflections.filter((x) => x.groupingKey[Feature.types.voice] === 'passive')
+    expect(passive.length).toEqual(1)
+    expect(active.length).toEqual(1)
+    expect(active[0].groupingKey).toBeTruthy()
+    expect(active[0].inflections.length).toEqual(1)
+    expect(active[0].inflections[0].groupingKey.gender).toEqual('feminine')
+    expect(active[0].inflections[0].inflections.length).toEqual(1)
+    expect(active[0].inflections[0].inflections[0]).toEqual(one)
   })
 
   test('featureMatch', () => {
