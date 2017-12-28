@@ -104,29 +104,17 @@ class Inflection {
 
     // group inflections by part of speech
     for (let infl of inflections) {
-      let pofskey, sortkey
-      if (infl[Feature.types.part]) {
-        pofskey = infl[Feature.types.part].map((f) => { return f.value }).join(',')
-        sortkey = Math.max(infl[Feature.types.part].map((f) => { return f.sortOrder }))
-      } else {
-        pofskey = ''
-        sortkey = 1
-      }
-      let dialkey = infl[Feature.types.dialect] ? infl[Feature.types.dialect].map((f) => { return f.value }).join(',') : ''
-      let compkey = infl[Feature.types.comparison] ? infl[Feature.types.comparison].map((f) => { return f.value }).join(',') : ''
-      let prefkey = infl.prefix ? infl.prefix : ''
-      let suffkey = infl.suffix ? infl.suffix : ''
-      let key = [prefkey, infl.stem, suffkey, pofskey, compkey, dialkey].filter((x) => x).join(' ')
-      if (grouped.has(key)) {
-        grouped.get(key).append(infl)
-      } else {
-        let groupingKey = new InflectionGroupingKey(infl, [Feature.types.part, Feature.types.dialect, Feature.types.comparison],
-          { prefix: infl.prefix,
-            suffix: infl.suffix,
-            stem: infl.stem
-          }
+      let groupingKey = new InflectionGroupingKey(infl, [Feature.types.part, Feature.types.dialect, Feature.types.comparison],
+        { prefix: infl.prefix,
+          suffix: infl.suffix,
+          stem: infl.stem
+        }
         )
-        grouped.set(key, new InflectionGroup(groupingKey, [infl], sortkey))
+      let groupingKeyStr = groupingKey.toString()
+      if (grouped.has(groupingKeyStr)) {
+        grouped.get(groupingKeyStr).append(infl)
+      } else {
+        grouped.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl]))
       }
     }
 
@@ -134,37 +122,32 @@ class Inflection {
     for (let kv of grouped) {
       let inflgrp = new Map()
       for (let infl of kv[1].inflections) {
-        let setkey
         let keyprop
         let isCaseInflectionSet = false
         if (infl[Feature.types.grmCase]) {
           // grouping on number if case is defined
-          setkey = infl[Feature.types.number] ? infl[Feature.types.number].map((f) => { return f.value }).join(',') : ''
           keyprop = Feature.types.number
           isCaseInflectionSet = true
         } else if (infl[Feature.types.tense]) {
           // grouping on tense if tense is defined but not case
-          setkey = infl[Feature.types.tense].map((f) => { return f.value }).join(',')
           keyprop = Feature.types.tense
         } else if (infl[Feature.types.part] === Constants.POFS_VERB) {
           // grouping on no case or tense but a verb
-          setkey = Constants.POFS_VERB
           keyprop = Feature.types.part
         } else if (infl[Feature.types.part] === Constants.POFS_ADVERB) {
           keyprop = Feature.types.part
-          setkey = Constants.POFS_ADVERB
           // grouping on adverbs without case or tense
         } else {
           keyprop = 'misc'
-          setkey = ''
           // grouping on adverbs without case or tense
           // everything else
         }
-        if (inflgrp.has(setkey)) {
-          inflgrp.get(setkey).append(infl)
+        let groupingKey = new InflectionGroupingKey(infl, [keyprop], {isCaseInflectionSet: isCaseInflectionSet})
+        let groupingKeyStr = groupingKey.toString()
+        if (inflgrp.has(groupingKeyStr)) {
+          inflgrp.get(groupingKeyStr).append(infl)
         } else {
-          let groupingKey = new InflectionGroupingKey(infl, [keyprop], {isCaseInflectionSet: isCaseInflectionSet})
-          inflgrp.set(setkey, new InflectionGroup(groupingKey, [infl]))
+          inflgrp.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl]))
         }
       }
       // inflgrp is now a map of groups of inflections grouped by
@@ -177,15 +160,13 @@ class Inflection {
       for (let kv of inflgrp) {
         let nextGroup = new Map()
         for (let infl of kv[1].inflections) {
-          let tensekey = infl[Feature.types.tense] ? infl[Feature.types.tense].map((f) => { return f.value }).join(',') : ''
-          let voicekey = infl[Feature.types.voice] ? infl[Feature.types.voice].map((f) => { return f.value }).join(',') : ''
-          let setkey = [tensekey, voicekey].filter((x) => x).join(' ')
           let sortkey = infl[Feature.types.grmCase] ? Math.max(infl[Feature.types.grmCase].map((f) => { return f.sortOrder })) : 1
-          if (nextGroup.has(setkey)) {
-            nextGroup.get(setkey).append(infl)
+          let groupingKey = new InflectionGroupingKey(infl, [Feature.types.tense, Feature.types.voice])
+          let groupingKeyStr = groupingKey.toString()
+          if (nextGroup.has(groupingKeyStr)) {
+            nextGroup.get(groupingKeyStr).append(infl)
           } else {
-            let groupingKey = new InflectionGroupingKey(infl, [Feature.types.tense, Feature.types.voice])
-            nextGroup.set(setkey, new InflectionGroup(groupingKey, [infl], sortkey))
+            nextGroup.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl], sortkey))
           }
         }
         kv[1].inflections = Array.from(nextGroup.values())
@@ -199,23 +180,14 @@ class Inflection {
           let nextGroup = new Map()
           for (let infl of group.inflections) {
             // set key is case comp gend pers mood sort
-            let casekey = infl[Feature.types.grmCase] ? infl[Feature.types.grmCase].map((f) => { return f.value }).join(',') : ''
-            let compkey = infl[Feature.types.comparison] ? infl[Feature.types.comparison].map((f) => { return f.value }).join(',') : ''
-            let gendkey = infl[Feature.types.gender] ? infl[Feature.types.gender].map((f) => { return f.value }).join(',') : ''
-            let numkey = infl[Feature.types.number] ? infl[Feature.types.number].map((f) => { return f.value }).join(',') : ''
-            let perskey = infl[Feature.types.person] ? infl[Feature.types.person].map((f) => { return f.value }).join(',') : ''
-            let tensekey = infl[Feature.types.tense] ? infl[Feature.types.tense].map((f) => { return f.value }).join(',') : ''
-            let voicekey = infl[Feature.types.voice] ? infl[Feature.types.voice].map((f) => { return f.value }).join(',') : ''
-            let moodkey = infl[Feature.types.mood] ? infl[Feature.types.mood].map((f) => { return f.value }).join(',') : ''
-            let sortkey = infl[Feature.types.sort] ? infl[Feature.types.sort].map((f) => { return f.value }).join(',') : ''
-            let setkey = [casekey, compkey, gendkey, numkey, perskey, tensekey, moodkey, sortkey, voicekey].filter((x) => x).join(' ')
-            if (nextGroup.has(setkey)) {
-              nextGroup.get(setkey).append(infl)
+            let groupingKey = new InflectionGroupingKey(infl,
+              [Feature.types.grmCase, Feature.types.comparison, Feature.types.gender, Feature.types.number, Feature.types.person,
+                Feature.types.tense, Feature.types.mood, Feature.types.sort, Feature.types.voice])
+            let groupingKeyStr = groupingKey.toString()
+            if (nextGroup.has(groupingKeyStr)) {
+              nextGroup.get(groupingKeyStr).append(infl)
             } else {
-              let groupingKey = new InflectionGroupingKey(infl,
-                [Feature.types.grmCase, Feature.types.comparison, Feature.types.gender, Feature.types.number, Feature.types.person,
-                  Feature.types.tense, Feature.types.mood, Feature.types.sort, Feature.types.voice])
-              nextGroup.set(setkey, new InflectionGroup(groupingKey, [infl]))
+              nextGroup.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl]))
             }
           }
           group.inflections = Array.from(nextGroup.values()) // now a group of inflection groups

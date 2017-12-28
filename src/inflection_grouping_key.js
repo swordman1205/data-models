@@ -12,6 +12,11 @@ class InflectionGroupingKey {
     Object.assign(this, extras)
   }
 
+  /**
+   * checks if a feature with a specific value
+   * is included in the grouping key
+   * @returns {boolean} true if found, false if not
+   */
   hasFeatureValue (feature, value) {
     for (let f of this[feature]) {
       if (f.hasValue(value)) {
@@ -19,6 +24,22 @@ class InflectionGroupingKey {
       }
     }
     return false
+  }
+
+  /**
+   * Return this key as a string
+   * @returns {string} string representation of the key
+   */
+  toString () {
+    let values = []
+    for (let prop of Object.getOwnPropertyNames(this).sort()) {
+      if (Array.isArray(this[prop])) {
+        values.push(this[prop].map((x) => x.toString()).sort().join(','))
+      } else {
+        values.push(this[prop])
+      }
+    }
+    return values.join(' ')
   }
 }
 
