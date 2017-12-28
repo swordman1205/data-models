@@ -34,7 +34,6 @@ class Feature {
   };
 
   isEqual (feature) {
-    console.log('Compare', this, feature)
     if (Array.isArray(feature.value)) {
       if (!Array.isArray(this.value) || this.value.length !== feature.value.length) {
         return false
@@ -46,6 +45,14 @@ class Feature {
       return equal
     } else {
       return this.value === feature.value && this.type === feature.type && this.language === feature.language
+    }
+  }
+
+  hasValue (value) {
+    if (Array.isArray(this.value)) {
+      return this.value.includes(value)
+    } else {
+      return this.value === value
     }
   }
 

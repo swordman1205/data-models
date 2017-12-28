@@ -63,6 +63,13 @@ describe('Feature object', () => {
     expect(f.toLocaleStringAbbr('en')).toEqual('f')
   })
 
+  test('hasValue', () => {
+    let f = new Feature(['foo', 'bar'], Feature.types.gender, 'lat')
+    expect(f.hasValue('foo')).toBeTruthy()
+    expect(f.hasValue('bar')).toBeTruthy()
+    expect(f.hasValue('junk')).toBeFalsy()
+  })
+
   afterAll(() => {
         // Clean a test environment up
     featureGreek1 = undefined

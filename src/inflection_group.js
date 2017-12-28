@@ -2,11 +2,11 @@ class InflectionGroup {
   /**
    * A group of inflections or groups of inflections
    *
-   * @param {object} groupingKey features of the inflections in the group
+   * @param {InflectionGroupingKey} groupingKey features of the inflections in the group
    * @param {Inflection[]|InflectionGroup[]} inflections array of Inflections or InflectionGroups in this group
    * @param {string} sortKey optional property upon which inflections in the group can be sorted
    */
-  constructor (groupingKey = {}, inflections = [], sortKey = null) {
+  constructor (groupingKey, inflections = [], sortKey = null) {
     this.groupingKey = groupingKey
     this.inflections = inflections
     this.sortKey = sortKey
