@@ -1829,25 +1829,30 @@ class Inflection {
           setkey = infl[Feature.types.number] ? infl[Feature.types.number].map((f) => { return f.value }).join(',') : '';
           keyprop = Feature.types.number;
           props[keyprop] = infl[Feature.types.number];
+          props.isCaseInflectionSet = true;
         } else if (infl[Feature.types.tense]) {
           // grouping on tense if tense is defined but not case
           setkey = infl[Feature.types.tense].map((f) => { return f.value }).join(',');
           keyprop = Feature.types.tense;
           props[keyprop] = infl[Feature.types.tense];
+          props.isCaseInflectionSet = false;
         } else if (infl[Feature.types.part] === POFS_VERB) {
           // grouping on no case or tense but a verb
           setkey = POFS_VERB;
           keyprop = Feature.types.part;
           props[keyprop] = infl[Feature.types.part];
+          props.isCaseInflectionSet = false;
         } else if (infl[Feature.types.part] === POFS_ADVERB) {
           keyprop = Feature.types.part;
           setkey = POFS_ADVERB;
           props[keyprop] = infl[Feature.types.part];
+          props.isCaseInflectionSet = false;
           // grouping on adverbs without case or tense
         } else {
           keyprop = 'misc';
           setkey = '';
           props[keyprop] = setkey;
+          props.isCaseInflectionSet = false;
           // grouping on adverbs without case or tense
           // everything else
         }
@@ -1894,10 +1899,13 @@ class Inflection {
             let casekey = infl[Feature.types.grmCase] ? infl[Feature.types.grmCase].map((f) => { return f.value }).join(',') : '';
             let compkey = infl[Feature.types.comparison] ? infl[Feature.types.comparison].map((f) => { return f.value }).join(',') : '';
             let gendkey = infl[Feature.types.gender] ? infl[Feature.types.gender].map((f) => { return f.value }).join(',') : '';
+            let numkey = infl[Feature.types.number] ? infl[Feature.types.number].map((f) => { return f.value }).join(',') : '';
             let perskey = infl[Feature.types.person] ? infl[Feature.types.person].map((f) => { return f.value }).join(',') : '';
+            let tensekey = infl[Feature.types.tense] ? infl[Feature.types.tense].map((f) => { return f.value }).join(',') : '';
+            let voicekey = infl[Feature.types.voice] ? infl[Feature.types.voice].map((f) => { return f.value }).join(',') : '';
             let moodkey = infl[Feature.types.mood] ? infl[Feature.types.mood].map((f) => { return f.value }).join(',') : '';
             let sortkey = infl[Feature.types.sort] ? infl[Feature.types.sort].map((f) => { return f.value }).join(',') : '';
-            let setkey = [casekey, compkey, gendkey, perskey, moodkey, sortkey].filter((x) => x).join(' ');
+            let setkey = [casekey, compkey, gendkey, numkey, perskey, tensekey, moodkey, sortkey, voicekey].filter((x) => x).join(' ');
             if (nextGroup.has(setkey)) {
               nextGroup.get(setkey).append(infl);
             } else {
@@ -1905,9 +1913,12 @@ class Inflection {
               props[Feature.types.grmCase] = infl[Feature.types.grmCase];
               props[Feature.types.comparison] = infl[Feature.types.comparison];
               props[Feature.types.gender] = infl[Feature.types.gender];
+              props[Feature.types.number] = infl[Feature.types.number];
               props[Feature.types.person] = infl[Feature.types.person];
+              props[Feature.types.tense] = infl[Feature.types.tense];
               props[Feature.types.mood] = infl[Feature.types.mood];
               props[Feature.types.sort] = infl[Feature.types.sort];
+              props[Feature.types.voice] = infl[Feature.types.voice];
               nextGroup.set(setkey, new InflectionGroup(props, [infl]));
             }
           }
