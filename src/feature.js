@@ -48,6 +48,11 @@ class Feature {
     }
   }
 
+  /**
+   * examine the feature for a specific value
+   * @param {string} value
+   * @returns {boolean} true if the value is included in the feature's values
+   */
   hasValue (value) {
     if (Array.isArray(this.value)) {
       return this.value.includes(value)
@@ -56,6 +61,10 @@ class Feature {
     }
   }
 
+  /**
+   * string representation of a feature
+   * @return {string}
+   */
   toString () {
     if (Array.isArray(this.value)) {
       return this.value.join(',')
@@ -64,8 +73,11 @@ class Feature {
     }
   }
 
+  /**
+   * a locale-specific abbreviation for a feature's values
+   * @return {string}
+   */
   toLocaleStringAbbr (lang = 'en') {
-    // TODO this should be using an i18n library
     if (Array.isArray(this.value)) {
       return this.value.map((v) => this.toLocaleStringAbbr(v, lang))
     } else {

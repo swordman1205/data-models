@@ -732,6 +732,72 @@ class FeatureType {
   }
 }
 
+class InflectionGroupingKey {
+  /**
+   * @constructor
+   * @param {Inflection} infl inflection with features which are used as a grouping key
+   * @param {string[]} features array of feature names which are used as the key
+   * @param {Map} extras extra property name and value pairs used in the key
+   */
+  constructor (infl, features, extras = {}) {
+    for (let feature of features) {
+      this[feature] = infl[feature];
+    }
+    Object.assign(this, extras);
+  }
+
+  /**
+   * checks if a feature with a specific value
+   * is included in the grouping key
+   * @returns {boolean} true if found, false if not
+   */
+  hasFeatureValue (feature, value) {
+    for (let f of this[feature]) {
+      if (f.hasValue(value)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  /**
+   * Return this key as a string
+   * @returns {string} string representation of the key
+   */
+  toString () {
+    let values = [];
+    for (let prop of Object.getOwnPropertyNames(this).sort()) {
+      if (Array.isArray(this[prop])) {
+        values.push(this[prop].map((x) => x.toString()).sort().join(','));
+      } else {
+        values.push(this[prop]);
+      }
+    }
+    return values.join(' ')
+  }
+}
+
+class InflectionGroup {
+  /**
+   * A group of inflections or groups of inflections
+   *
+   * @param {InflectionGroupingKey} groupingKey features of the inflections in the group
+   * @param {Inflection[]|InflectionGroup[]} inflections array of Inflections or InflectionGroups in this group
+   */
+  constructor (groupingKey, inflections = [], sortKey = null) {
+    this.groupingKey = groupingKey;
+    this.inflections = inflections;
+  }
+
+  /**
+   * Add an Inflection or InflectionGroup to the group
+   * @param {Inflection|InflectionGroup} inflection
+   */
+  append (inflection) {
+    this.inflections.push(inflection);
+  }
+}
+
 /**
  * @class  LanguageModel is the base class for language-specific behavior
  */
@@ -933,6 +999,131 @@ class LanguageModel {
    */
   static isLanguageCode (language) {
     return !LanguageModel.isLanguageID(language)
+  }
+
+  /**
+   * Groups a set of inflections according to a language-specific display paradigm
+   * The default groups according to the following logic:
+   *   1. groups of groups with unique stem, prefix, suffix, part of speech dialect and comparison
+   *     2. groups of those groups with unique
+   *          number, if it's an inflection with a grammatical case
+   *          tense, if it's an inflection with tense but no case (i.e. a verb)
+   *          verbs without tense or case
+   *          adverbs
+   *          everything else
+   *       3. groups of those groups with unique voice and tense
+   *         4. groups of inflections with unique gender, person, mood, and sort
+   */
+  groupInflectionsForDisplay (inflections) {
+    let grouped = new Map();
+
+    // group inflections by part of speech
+    for (let infl of inflections) {
+      let groupingKey = new InflectionGroupingKey(infl,
+        [Feature.types.part, Feature.types.dialect, Feature.types.comparison],
+        { prefix: infl.prefix,
+          suffix: infl.suffix,
+          stem: infl.stem
+        }
+        );
+      let groupingKeyStr = groupingKey.toString();
+      if (grouped.has(groupingKeyStr)) {
+        grouped.get(groupingKeyStr).append(infl);
+      } else {
+        grouped.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl]));
+      }
+    }
+
+    // iterate through each group key to group the inflections in that group
+    for (let kv of grouped) {
+      let inflgrp = new Map();
+      for (let infl of kv[1].inflections) {
+        let keyprop;
+        let isCaseInflectionSet = false;
+        if (infl[Feature.types.grmCase]) {
+          // grouping on number if case is defined
+          keyprop = Feature.types.number;
+          isCaseInflectionSet = true;
+        } else if (infl[Feature.types.tense]) {
+          // grouping on tense if tense is defined but not case
+          keyprop = Feature.types.tense;
+        } else if (infl[Feature.types.part] === POFS_VERB) {
+          // grouping on no case or tense but a verb
+          keyprop = Feature.types.part;
+        } else if (infl[Feature.types.part] === POFS_ADVERB) {
+          keyprop = Feature.types.part;
+          // grouping on adverbs without case or tense
+        } else {
+          keyprop = 'misc';
+          // grouping on adverbs without case or tense
+          // everything else
+        }
+        let groupingKey = new InflectionGroupingKey(infl, [keyprop], {isCaseInflectionSet: isCaseInflectionSet});
+        let groupingKeyStr = groupingKey.toString();
+        if (inflgrp.has(groupingKeyStr)) {
+          inflgrp.get(groupingKeyStr).append(infl);
+        } else {
+          inflgrp.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl]));
+        }
+      }
+      // inflgrp is now a map of groups of inflections grouped by
+      //  inflections with number
+      //  inflections without number but with tense
+      //  inflections of verbs without tense
+      //  inflections of adverbs
+      //  everything else
+      // iterate through each inflection group key to group the inflections in that group by tense and voice
+      for (let kv of inflgrp) {
+        let nextGroup = new Map();
+        let sortOrder = new Map();
+        for (let infl of kv[1].inflections) {
+          let sortkey = infl[Feature.types.grmCase] ? Math.max(infl[Feature.types.grmCase].map((f) => { return f.sortOrder })) : 1;
+          let groupingKey = new InflectionGroupingKey(infl, [Feature.types.tense, Feature.types.voice]);
+          let groupingKeyStr = groupingKey.toString();
+          if (nextGroup.has(groupingKeyStr)) {
+            nextGroup.get(groupingKeyStr).append(infl);
+          } else {
+            nextGroup.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl], sortkey));
+            sortOrder.set(groupingKeyStr, sortkey);
+          }
+        }
+        kv[1].inflections = [];
+        let sortedKeys = Array.from(nextGroup.keys()).sort(
+          (a, b) => {
+            let orderA = sortOrder.get(a);
+            let orderB = sortOrder.get(b);
+            return orderA > orderB ? -1 : orderB > orderA ? 1 : 0
+          }
+        );
+        for (let groupkey of sortedKeys) {
+          kv[1].inflections.push(nextGroup.get(groupkey));
+        }
+      }
+
+      // inflgrp is now a Map of groups of groups of inflections
+
+      for (let kv of inflgrp) {
+        let groups = kv[1];
+        for (let group of groups.inflections) {
+          let nextGroup = new Map();
+          for (let infl of group.inflections) {
+            // set key is case comp gend pers mood sort
+            let groupingKey = new InflectionGroupingKey(infl,
+              [Feature.types.grmCase, Feature.types.comparison, Feature.types.gender, Feature.types.number, Feature.types.person,
+                Feature.types.tense, Feature.types.mood, Feature.types.sort, Feature.types.voice]);
+            let groupingKeyStr = groupingKey.toString();
+            if (nextGroup.has(groupingKeyStr)) {
+              nextGroup.get(groupingKeyStr).append(infl);
+            } else {
+              nextGroup.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl]));
+            }
+          }
+          group.inflections = Array.from(nextGroup.values()); // now a group of inflection groups
+        }
+      }
+      kv[1].inflections = Array.from(inflgrp.values());
+    }
+    return Array.from(grouped.values())
   }
 }
 
@@ -1417,6 +1608,9 @@ class LanguageModelFactory {
   }
 }
 
+/**
+ * This is a temporary placeholder for an i18n library
+ */
 const i18n = {
   en: {
     feminine: {
@@ -1482,6 +1676,11 @@ class Feature {
     }
   }
 
+  /**
+   * examine the feature for a specific value
+   * @param {string} value
+   * @returns {boolean} true if the value is included in the feature's values
+   */
   hasValue (value) {
     if (Array.isArray(this.value)) {
       return this.value.includes(value)
@@ -1490,6 +1689,10 @@ class Feature {
     }
   }
 
+  /**
+   * string representation of a feature
+   * @return {string}
+   */
   toString () {
     if (Array.isArray(this.value)) {
       return this.value.join(',')
@@ -1498,8 +1701,11 @@ class Feature {
     }
   }
 
+  /**
+   * a locale-specific abbreviation for a feature's values
+   * @return {string}
+   */
   toLocaleStringAbbr (lang = 'en') {
-    // TODO this should be using an i18n library
     if (Array.isArray(this.value)) {
       return this.value.map((v) => this.toLocaleStringAbbr(v, lang))
     } else {
@@ -1669,81 +1875,6 @@ class Lemma {
   }
 }
 
-class InflectionGroup {
-  /**
-   * A group of inflections or groups of inflections
-   *
-   * @param {InflectionGroupingKey} groupingKey features of the inflections in the group
-   * @param {Inflection[]|InflectionGroup[]} inflections array of Inflections or InflectionGroups in this group
-   * @param {string} sortKey optional property upon which inflections in the group can be sorted
-   */
-  constructor (groupingKey, inflections = [], sortKey = null) {
-    this.groupingKey = groupingKey;
-    this.inflections = inflections;
-    this.sortKey = sortKey;
-  }
-
-  /**
-   * Add an Inflection or InflectionGroup to the group
-   * @param {Inflection|InflectionGroup} inflection
-   */
-  append (inflection) {
-    this.inflections.push(inflection);
-  }
-
-  /**
-   * TODO method which returns a comparator for the inflections in the group
-   */
-  static sortByOrder () {
-    return (a, b) => {
-      // let orderA = groupOrder.get(a)
-      // let orderB = groupOrder.get(b)
-      // return orderA > orderB ? -1 : orderB > orderA ? 1 : 0
-    }
-  }
-}
-
-class InflectionGroupingKey {
-  /**
-   * @constructor
-   * @param {Inflection} infl inflection with features which are used as a grouping key
-   * @param {string[]} features array of feature names which are used as the key
-   * @param {Map} extras extra property name and value pairs used in the key
-   */
-  constructor (infl, features, extras = {}) {
-    for (let feature of features) {
-      this[feature] = infl[feature];
-    }
-    Object.assign(this, extras);
-  }
-
-  /**
-   * checks if a feature with a specific value
-   * is included in the grouping key
-   * @returns {boolean} true if found, false if not
-   */
-  hasFeatureValue (feature, value) {
-    for (let f of this[feature]) {
-      if (f.hasValue(value)) {
-        return true
-      }
-    }
-    return false
-  }
-
-  toString () {
-    let values = [];
-    for (let prop of Object.getOwnPropertyNames(this).sort()) {
-      if (Array.isArray(this[prop])) {
-        values.push(this[prop].map((x) => x.toString()).sort().join(','));
-      } else {
-        values.push(this[prop]);
-      }
-    }
-    return values.join(' ')
-  }
-}
-
 /*
  Hierarchical structure of return value of a morphological analyzer:
 
@@ -1839,105 +1970,6 @@ class Inflection {
       // this[type].push(element.value)
     }
   }
-
-  static groupForDisplay (inflections) {
-    let grouped = new Map();
-
-    // group inflections by part of speech
-    for (let infl of inflections) {
-      let groupingKey = new InflectionGroupingKey(infl, [Feature.types.part, Feature.types.dialect, Feature.types.comparison],
-        { prefix: infl.prefix,
-          suffix: infl.suffix,
-          stem: infl.stem
-        }
-        );
-      let groupingKeyStr = groupingKey.toString();
-      if (grouped.has(groupingKeyStr)) {
-        grouped.get(groupingKeyStr).append(infl);
-      } else {
-        grouped.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl]));
-      }
-    }
-
-    // iterate through each group key to group the inflections in that group
-    for (let kv of grouped) {
-      let inflgrp = new Map();
-      for (let infl of kv[1].inflections) {
-        let keyprop;
-        let isCaseInflectionSet = false;
-        if (infl[Feature.types.grmCase]) {
-          // grouping on number if case is defined
-          keyprop = Feature.types.number;
-          isCaseInflectionSet = true;
-        } else if (infl[Feature.types.tense]) {
-          // grouping on tense if tense is defined but not case
-          keyprop = Feature.types.tense;
-        } else if (infl[Feature.types.part] === POFS_VERB) {
-          // grouping on no case or tense but a verb
-          keyprop = Feature.types.part;
-        } else if (infl[Feature.types.part] === POFS_ADVERB) {
-          keyprop = Feature.types.part;
-          // grouping on adverbs without case or tense
-        } else {
-          keyprop = 'misc';
-          // grouping on adverbs without case or tense
-          // everything else
-        }
-        let groupingKey = new InflectionGroupingKey(infl, [keyprop], {isCaseInflectionSet: isCaseInflectionSet});
-        let groupingKeyStr = groupingKey.toString();
-        if (inflgrp.has(groupingKeyStr)) {
-          inflgrp.get(groupingKeyStr).append(infl);
-        } else {
-          inflgrp.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl]));
-        }
-      }
-      // inflgrp is now a map of groups of inflections grouped by
-      //  inflections with number
-      //  inflections without number but with tense
-      //  inflections of verbs without tense
-      //  inflections of adverbs
-      //  everything else
-      // iterate through each inflection group key to group the inflections in that group by tense and voice
-      for (let kv of inflgrp) {
-        let nextGroup = new Map();
-        for (let infl of kv[1].inflections) {
-          let sortkey = infl[Feature.types.grmCase] ? Math.max(infl[Feature.types.grmCase].map((f) => { return f.sortOrder })) : 1;
-          let groupingKey = new InflectionGroupingKey(infl, [Feature.types.tense, Feature.types.voice]);
-          let groupingKeyStr = groupingKey.toString();
-          if (nextGroup.has(groupingKeyStr)) {
-            nextGroup.get(groupingKeyStr).append(infl);
-          } else {
-            nextGroup.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl], sortkey));
-          }
-        }
-        kv[1].inflections = Array.from(nextGroup.values());
-      }
-
-      // inflgrp is now a Map of groups of groups of inflections
-
-      for (let kv of inflgrp) {
-        let groups = kv[1];
-        for (let group of groups.inflections) {
-          let nextGroup = new Map();
-          for (let infl of group.inflections) {
-            // set key is case comp gend pers mood sort
-            let groupingKey = new InflectionGroupingKey(infl,
-              [Feature.types.grmCase, Feature.types.comparison, Feature.types.gender, Feature.types.number, Feature.types.person,
-                Feature.types.tense, Feature.types.mood, Feature.types.sort, Feature.types.voice]);
-            let groupingKeyStr = groupingKey.toString();
-            if (nextGroup.has(groupingKeyStr)) {
-              nextGroup.get(groupingKeyStr).append(infl);
-            } else {
-              nextGroup.set(groupingKeyStr, new InflectionGroup(groupingKey, [infl]));
-            }
-          }
-          group.inflections = Array.from(nextGroup.values()); // now a group of inflection groups
-        }
-      }
-      kv[1].inflections = Array.from(inflgrp.values());
-    }
-    return Array.from(grouped.values())
-  }
 }
 
 /**
@@ -1981,8 +2013,8 @@ class Lexeme {
   }
 
   getGroupedInflections () {
-    console.log(Inflection.groupForDisplay(this.inflections));
-    return Inflection.groupForDisplay(this.inflections)
+    let lm = LanguageModelFactory.getLanguageForCode(this.lemma.language);
+    return lm.groupInflectionsForDisplay(this.inflections)
   }
 
   static readObject (jsonObject) {

@@ -1,6 +1,7 @@
 import Lemma from './lemma.js'
 import Inflection from './inflection.js'
 import DefinitionSet from './definition-set'
+import LMF from './language_model_factory'
 
 /**
  * A basic unit of lexical meaning. Contains a primary Lemma object, one or more Inflection objects
@@ -43,8 +44,8 @@ class Lexeme {
   }
 
   getGroupedInflections () {
-    console.log(Inflection.groupForDisplay(this.inflections))
-    return Inflection.groupForDisplay(this.inflections)
+    let lm = LMF.getLanguageForCode(this.lemma.language)
+    return lm.groupInflectionsForDisplay(this.inflections)
   }
 
   static readObject (jsonObject) {

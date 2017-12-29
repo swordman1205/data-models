@@ -1,3 +1,6 @@
+/**
+ * This is a temporary placeholder for an i18n library
+ */
 export const i18n = {
   en: {
     feminine: {
