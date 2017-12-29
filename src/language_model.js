@@ -47,6 +47,8 @@ class LanguageModel {
     features[Feature.types.person] = new FeatureType(Feature.types.person,
       [Constants.ORD_1ST, Constants.ORD_2ND, Constants.ORD_3RD], code)
     // some general, non-language specific grammatical features
+    features[Feature.types.age] = new FeatureType(Feature.types.age,
+      ['*'], code)
     features[Feature.types.area] = new FeatureType(Feature.types.area,
       ['*'], code)
     features[Feature.types.source] = new FeatureType(Feature.types.source,
