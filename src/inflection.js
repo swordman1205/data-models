@@ -92,7 +92,6 @@ class Inflection {
       }
 
       this[type].push(element)
-      // this[type].push(element.value)
     }
   }
 }
