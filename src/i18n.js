@@ -9,7 +9,7 @@ export const i18n = {
     },
     masculine: {
       full: 'masculine',
-      abbr: 'n'
+      abbr: 'm'
     },
     neuter: {
       full: 'neuter',
