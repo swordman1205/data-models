@@ -48,21 +48,21 @@ class LanguageModel {
       [Constants.ORD_1ST, Constants.ORD_2ND, Constants.ORD_3RD], code)
     // some general, non-language specific grammatical features
     features[Feature.types.age] = new FeatureType(Feature.types.age,
-      ['*'], code)
+      [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.area] = new FeatureType(Feature.types.area,
-      ['*'], code)
+      [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.source] = new FeatureType(Feature.types.source,
-      ['*'], code)
+      [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.frequency] = new FeatureType(Feature.types.frequency,
-      ['*'], code)
+      [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.geo] = new FeatureType(Feature.types.geo,
-      ['*'], code)
+      [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.source] = new FeatureType(Feature.types.source,
-      ['*'], code)
+      [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.pronunciation] = new FeatureType(Feature.types.pronunciation,
-      ['*'], code)
+      [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.kind] = new FeatureType(Feature.types.kind,
-      ['*'], code)
+      [FeatureType.UNRESTRICTED_VALUE], code)
     return features
   }
 

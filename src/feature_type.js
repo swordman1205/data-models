@@ -35,7 +35,6 @@ class FeatureType {
 
     this.type = type
     this.language = language
-    this.unrestrictedValue = values.length === 1 && values[0] === '*'
 
         /*
          This is a sort order index for a grammatical feature values. It is determined by the order of values in
@@ -57,6 +56,14 @@ class FeatureType {
       }
     }
   };
+
+  /**
+   * test to see if this FeatureType allows unrestricted values
+   * @returns {boolean} true if unrestricted false if not
+   */
+  hasUnrestrictedValue () {
+    return this.orderedValues.length === 1 && this.orderedValues[0] === FeatureType.UNRESTRICTED_VALUE
+  }
 
     /**
      * Return a Feature with an arbitrary value. This value would not be necessarily present among FeatureType values.
@@ -209,4 +216,5 @@ class FeatureType {
     }
   }
 }
+FeatureType.UNRESTRICTED_VALUE = Symbol('unrestricted')
 export default FeatureType

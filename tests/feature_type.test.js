@@ -131,6 +131,11 @@ describe('FeatureType', () => {
     expect(() => featureType.order = [f1]).toThrowError(/not stored/) //eslint-disable-line
   })
 
+  test('hasUnrestrictedValue', () => {
+    let f1 = new FeatureType(Feature.types.age, [FeatureType.UNRESTRICTED_VALUE], 'lat')
+    expect(f1.hasUnrestrictedValue()).toBeTruthy()
+  })
+
   afterAll(() => {
     // Clean a test environment up
     featureType = undefined

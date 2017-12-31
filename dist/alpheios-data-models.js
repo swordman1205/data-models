@@ -557,7 +557,6 @@ class FeatureType {
 
     this.type = type;
     this.language = language;
-    this.unrestrictedValue = values.length === 1 && values[0] === '*';
 
         /*
          This is a sort order index for a grammatical feature values. It is determined by the order of values in
@@ -579,6 +578,14 @@ class FeatureType {
       }
     }
   };
+
+  /**
+   * test to see if this FeatureType allows unrestricted values
+   * @returns {boolean} true if unrestricted false if not
+   */
+  hasUnrestrictedValue () {
+    return this.orderedValues.length === 1 && this.orderedValues[0] === FeatureType.UNRESTRICTED_VALUE
+  }
 
     /**
      * Return a Feature with an arbitrary value. This value would not be necessarily present among FeatureType values.
@@ -731,6 +738,7 @@ class FeatureType {
     }
   }
 }
+FeatureType.UNRESTRICTED_VALUE = Symbol('unrestricted');
 
 class InflectionGroupingKey {
   /**
@@ -842,21 +850,21 @@ class LanguageModel {
       [ORD_1ST, ORD_2ND, ORD_3RD], code);
     // some general, non-language specific grammatical features
     features[Feature.types.age] = new FeatureType(Feature.types.age,
-      ['*'], code);
+      [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.area] = new FeatureType(Feature.types.area,
-      ['*'], code);
+      [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.source] = new FeatureType(Feature.types.source,
-      ['*'], code);
+      [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.frequency] = new FeatureType(Feature.types.frequency,
-      ['*'], code);
+      [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.geo] = new FeatureType(Feature.types.geo,
-      ['*'], code);
+      [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.source] = new FeatureType(Feature.types.source,
-      ['*'], code);
+      [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.pronunciation] = new FeatureType(Feature.types.pronunciation,
-      ['*'], code);
+      [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.kind] = new FeatureType(Feature.types.kind,
-      ['*'], code);
+      [FeatureType.UNRESTRICTED_VALUE], code);
     return features
   }
 
@@ -1621,7 +1629,7 @@ const i18n = {
     },
     masculine: {
       full: 'masculine',
-      abbr: 'n'
+      abbr: 'm'
     },
     neuter: {
       full: 'neuter',
