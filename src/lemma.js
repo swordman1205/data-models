@@ -66,6 +66,14 @@ class Lemma {
       this.features[type].push(element)
     }
   }
+
+  /**
+   * Get a string which can be used as a unique key to identify this lemma
+   * @return {string} the key
+   */
+  get key () {
+    return [this.word, this.languageCode, ...this.features[Feature.types.part]].join('-')
+  }
 }
 
 export default Lemma
