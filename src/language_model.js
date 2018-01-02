@@ -63,6 +63,8 @@ class LanguageModel {
       [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.kind] = new FeatureType(Feature.types.kind,
       [FeatureType.UNRESTRICTED_VALUE], code)
+    features[Feature.types.comparison] = new FeatureType(Feature.types.comparison,
+      [Constants.COMP_POSITIVE, Constants.COMP_SUPERLATIVE, Constants.COMP_COMPARITIVE], code)
     return features
   }
 
