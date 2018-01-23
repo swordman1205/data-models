@@ -97,6 +97,7 @@ class Feature {
 // Should have no spaces in values in order to be used in HTML templates
 Feature.types = {
   word: 'word',
+  altForm: 'alternative form', // An alternative form of a word
   part: 'part of speech', // Part of speech
   number: 'number',
   'case': 'case',
@@ -116,13 +117,13 @@ Feature.types = {
   meaning: 'meaning', // Meaning of a word
   source: 'source', // Source of word definition
   footnote: 'footnote', // A footnote for a word's ending
-  dialect: 'dialect', // a dialect iderntifier
+  dialect: 'dialect', // a dialect identifier
   note: 'note', // a general note
   pronunciation: 'pronunciation',
   age: 'age',
   area: 'area',
   geo: 'geo', // geographical data
-  kind: 'kind', // verb kind informatin
+  kind: 'kind', // verb kind information
   derivtype: 'derivtype',
   stemtype: 'stemtype',
   morph: 'morph', // general morphological information
