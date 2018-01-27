@@ -24,6 +24,19 @@ class GreekLanguageModel extends LanguageModel {
   _initializeFeatures () {
     let features = super._initializeFeatures()
     let code = this.toCode()
+    features[Feature.types.grmClass] = new FeatureType(Feature.types.grmClass,
+      [ Constants.CLASS_DEMONSTRATIVE,
+        Constants.CLASS_GENERAL_RELATIVE,
+        Constants.CLASS_INDEFINITE,
+        Constants.CLASS_INTENSIVE,
+        Constants.CLASS_INTERROGATIVE,
+        Constants.CLASS_PERSONAL,
+        Constants.CLASS_POSSESSIVE,
+        Constants.CLASS_RECIPROCAL,
+        Constants.CLASS_REFLEXIVE,
+        Constants.CLASS_RELATIVE
+      ],
+      code)
     features[Feature.types.number] = new FeatureType(Feature.types.number, [Constants.NUM_SINGULAR, Constants.NUM_PLURAL, Constants.NUM_DUAL], code)
     features[Feature.types.grmCase] = new FeatureType(Feature.types.grmCase,
       [ Constants.CASE_NOMINATIVE,
@@ -60,6 +73,9 @@ class GreekLanguageModel extends LanguageModel {
     return features
   }
 
+  /**
+   * @return {Symbol} Returns a language ID
+   */
   static get sourceLanguage () {
     return Constants.LANG_GREEK
   }
