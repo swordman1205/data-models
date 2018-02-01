@@ -201,17 +201,13 @@ const VOICE_CIRCUMSTANTIAL = 'circumstantial';
 const VOICE_DEPONENT = 'deponent';
 const TYPE_IRREGULAR = 'irregular';
 const TYPE_REGULAR = 'regular';
-// Classes
+// Classes (of pronouns in Latin)
 const CLASS_PERSONAL = 'personal';
 const CLASS_REFLEXIVE = 'reflexive';
 const CLASS_POSSESSIVE = 'possessive';
 const CLASS_DEMONSTRATIVE = 'demonstrative';
 const CLASS_RELATIVE = 'relative';
 const CLASS_INTERROGATIVE = 'interrogative';
-const CLASS_GENERAL_RELATIVE = 'general relative';
-const CLASS_INDEFINITE = 'indefinite';
-const CLASS_INTENSIVE = 'intensive';
-const CLASS_RECIPROCAL = 'reciprocal';
 /* eslit-enable no-unused-vars */
 
 
@@ -418,11 +414,7 @@ var constants = Object.freeze({
 	CLASS_POSSESSIVE: CLASS_POSSESSIVE,
 	CLASS_DEMONSTRATIVE: CLASS_DEMONSTRATIVE,
 	CLASS_RELATIVE: CLASS_RELATIVE,
-	CLASS_INTERROGATIVE: CLASS_INTERROGATIVE,
-	CLASS_GENERAL_RELATIVE: CLASS_GENERAL_RELATIVE,
-	CLASS_INDEFINITE: CLASS_INDEFINITE,
-	CLASS_INTENSIVE: CLASS_INTENSIVE,
-	CLASS_RECIPROCAL: CLASS_RECIPROCAL
+	CLASS_INTERROGATIVE: CLASS_INTERROGATIVE
 });
 
 class Definition {
@@ -908,6 +900,12 @@ class LanguageModel {
       [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.comparison] = new FeatureType(Feature.types.comparison,
       [COMP_POSITIVE, COMP_SUPERLATIVE, COMP_COMPARITIVE], code);
+    features[Feature.types.morph] = new FeatureType(Feature.types.morph,
+      [FeatureType.UNRESTRICTED_VALUE], code);
+    features[Feature.types.stemtype] = new FeatureType(Feature.types.stemtype,
+      [FeatureType.UNRESTRICTED_VALUE], code);
+    features[Feature.types.derivtype] = new FeatureType(Feature.types.derivtype,
+      [FeatureType.UNRESTRICTED_VALUE], code);
     return features
   }
 
@@ -1219,12 +1217,16 @@ class LatinLanguageModel extends LanguageModel {
         TENSE_PLUPERFECT,
         TENSE_FUTURE_PERFECT
       ], code);
-    features[Feature.types.voice] = new FeatureType(Feature.types.voice, [VOICE_PASSIVE, VOICE_ACTIVE], code);
+    features[Feature.types.voice] = new FeatureType(Feature.types.voice, [VOICE_ACTIVE, VOICE_PASSIVE], code);
     features[Feature.types.mood] = new FeatureType(Feature.types.mood,
       [ MOOD_INDICATIVE,
         MOOD_SUBJUNCTIVE,
         MOOD_IMPERATIVE,
-        MOOD_PARTICIPLE
+        MOOD_PARTICIPLE,
+        MOOD_SUPINE,
+        MOOD_GERUNDIVE,
+        MOOD_PARTICIPLE,
+        MOOD_INFINITIVE
       ], code);
     features[Feature.types.conjugation] = new FeatureType(Feature.types.conjugation,
       [ ORD_1ST,
@@ -1316,19 +1318,6 @@ class GreekLanguageModel extends LanguageModel {
   _initializeFeatures () {
     let features = super._initializeFeatures();
     let code = this.toCode();
-    features[Feature.types.grmClass] = new FeatureType(Feature.types.grmClass,
-      [ CLASS_DEMONSTRATIVE,
-        CLASS_GENERAL_RELATIVE,
-        CLASS_INDEFINITE,
-        CLASS_INTENSIVE,
-        CLASS_INTERROGATIVE,
-        CLASS_PERSONAL,
-        CLASS_POSSESSIVE,
-        CLASS_RECIPROCAL,
-        CLASS_REFLEXIVE,
-        CLASS_RELATIVE
-      ],
-      code);
     features[Feature.types.number] = new FeatureType(Feature.types.number, [NUM_SINGULAR, NUM_PLURAL, NUM_DUAL], code);
     features[Feature.types.grmCase] = new FeatureType(Feature.types.grmCase,
       [ CASE_NOMINATIVE,
@@ -1365,9 +1354,6 @@ class GreekLanguageModel extends LanguageModel {
     return features
   }
 
-  /**
-   * @return {Symbol} Returns a language ID
-   */
   static get sourceLanguage () {
     return LANG_GREEK
   }
@@ -1399,7 +1385,7 @@ class GreekLanguageModel extends LanguageModel {
    * for the current node
    */
   canInflect (node) {
-    return true
+    return false
   }
   /**
    * @override LanguageModel#grammarFeatures
@@ -1418,7 +1404,11 @@ class GreekLanguageModel extends LanguageModel {
    */
   normalizeWord (word) {
     // we normalize greek to NFC - Normalization Form Canonical Composition
-    return word.normalize('NFC')
+    if (word) {
+      return word.normalize('NFC')
+    } else {
+      return word
+    }
   }
 
   /**
@@ -1849,7 +1839,6 @@ class Feature {
 // Should have no spaces in values in order to be used in HTML templates
 Feature.types = {
   word: 'word',
-  altForm: 'alternative form', // An alternative form of a word
   part: 'part of speech', // Part of speech
   number: 'number',
   'case': 'case',
@@ -1869,13 +1858,13 @@ Feature.types = {
   meaning: 'meaning', // Meaning of a word
   source: 'source', // Source of word definition
   footnote: 'footnote', // A footnote for a word's ending
-  dialect: 'dialect', // a dialect identifier
+  dialect: 'dialect', // a dialect iderntifier
   note: 'note', // a general note
   pronunciation: 'pronunciation',
   age: 'age',
   area: 'area',
   geo: 'geo', // geographical data
-  kind: 'kind', // verb kind information
+  kind: 'kind', // verb kind informatin
   derivtype: 'derivtype',
   stemtype: 'stemtype',
   morph: 'morph', // general morphological information

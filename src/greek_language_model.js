@@ -107,7 +107,7 @@ class GreekLanguageModel extends LanguageModel {
    * for the current node
    */
   canInflect (node) {
-    return true
+    return false
   }
   /**
    * @override LanguageModel#grammarFeatures
@@ -126,7 +126,11 @@ class GreekLanguageModel extends LanguageModel {
    */
   normalizeWord (word) {
     // we normalize greek to NFC - Normalization Form Canonical Composition
-    return word.normalize('NFC')
+    if (word) {
+      return word.normalize('NFC')
+    } else {
+      return word
+    }
   }
 
   /**
