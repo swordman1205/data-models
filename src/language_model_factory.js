@@ -17,7 +17,7 @@ const MODELS = new Map([
 class LanguageModelFactory {
   /**
    * Checks whether a language is supported
-   * @param {String | Symbol} language - Language as a language ID (Symbol) or a language code (String)
+   * @param {string | symbol} language - Language as a language ID (symbol) or a language code (string)
    * @return {boolean} True if language is supported, false otherwise
    */
   static supportsLanguage (language) {
@@ -37,8 +37,8 @@ class LanguageModelFactory {
 
   /**
    * Converts an ISO 639-3 language code to a language ID
-   * @param {String} languageCode - An ISO 639-3 language code
-   * @return {Symbol | undefined} A language ID or undefined if language ID is not found
+   * @param {string} languageCode - An ISO 639-3 language code
+   * @return {symbol | undefined} A language ID or undefined if language ID is not found
    */
   static getLanguageIdFromCode (languageCode) {
     for (const languageModel of MODELS.values()) {
@@ -50,8 +50,8 @@ class LanguageModelFactory {
 
   /**
    * Converts a language ID to an default ISO 639-3 language code for that language
-   * @param {Symbol} languageID - A language ID
-   * @return {String | undefined} An ISO 639-3 language code or undefined if language code is not found
+   * @param {symbol} languageID - A language ID
+   * @return {string | undefined} An ISO 639-3 language code or undefined if language code is not found
    */
   static getLanguageCodeFromId (languageID) {
     for (const languageModel of MODELS.values()) {
@@ -63,10 +63,10 @@ class LanguageModelFactory {
 
   /**
    * Takes either a language ID or a language code and returns an object with both an ID and a code.
-   * @param {String | Symbol} language - Either a language ID (a Symbol) or a language code (a String).
-   * @return {Object} An object with the following properties:
-   *    {Symbol} languageID
-   *    {String} languageCode
+   * @param {string | symbol} language - Either a language ID (a Symbol) or a language code (a String).
+   * @return {object} An object with the following properties:
+   *    {symbol} languageID
+   *    {string} languageCode
    */
   static getLanguageAttrs (language) {
     if (typeof language === 'symbol') {
@@ -88,8 +88,8 @@ class LanguageModelFactory {
    * Compares two languages in either a language ID or a language code format. For this, does conversion of
    * language IDs to language code. Because fo this, it will work even for language IDs defined in
    * different modules
-   * @param {String | Symbol} languageA - Either a language ID (a Symbol) or a language code (a String).
-   * @param {String | Symbol} languageB - Either a language ID (a Symbol) or a language code (a String).
+   * @param {string | symbol} languageA - Either a language ID (a symbol) or a language code (a string).
+   * @param {string | symbol} languageB - Either a language ID (a symbol) or a language code (a string).
    * @return {boolean} True if languages are the same, false otherwise.
    */
   static compareLanguages (languageA, languageB) {

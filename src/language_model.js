@@ -8,7 +8,7 @@ import InflectionGroup from './inflection_group.js'
  * @class  LanguageModel is the base class for language-specific behavior
  */
 class LanguageModel {
-   /**
+  /**
    */
   constructor () {
     this.sourceLanguage = null
@@ -19,11 +19,131 @@ class LanguageModel {
     this.codes = []
   }
 
+  static get featureValues () {
+    /*
+    This could be a static variable, but then it will create a circular reference:
+    Feature -> LanguageModelFactory -> LanguageModel -> Feature
+     */
+    return new Map([
+      [
+        Feature.types.part,
+        [
+          Constants.POFS_ADVERB,
+          Constants.POFS_ADVERBIAL,
+          Constants.POFS_ADJECTIVE,
+          Constants.POFS_ARTICLE,
+          Constants.POFS_CONJUNCTION,
+          Constants.POFS_EXCLAMATION,
+          Constants.POFS_INTERJECTION,
+          Constants.POFS_NOUN,
+          Constants.POFS_NUMERAL,
+          Constants.POFS_PARTICLE,
+          Constants.POFS_PREFIX,
+          Constants.POFS_PREPOSITION,
+          Constants.POFS_PRONOUN,
+          Constants.POFS_SUFFIX,
+          Constants.POFS_SUPINE,
+          Constants.POFS_VERB,
+          Constants.POFS_VERB_PARTICIPLE
+        ]
+      ],
+      [
+        Feature.types.gender,
+        [
+          Constants.GEND_MASCULINE,
+          Constants.GEND_FEMININE,
+          Constants.GEND_NEUTER
+        ]
+      ],
+      [
+        Feature.types.type,
+        [
+          Constants.TYPE_REGULAR,
+          Constants.TYPE_IRREGULAR
+        ]
+      ],
+      [
+        Feature.types.person,
+        [
+          Constants.ORD_1ST,
+          Constants.ORD_2ND,
+          Constants.ORD_3RD
+        ]
+      ],
+      [
+        Feature.types.age,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.area,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.source,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.frequency,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.geo,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.pronunciation,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.kind,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.comparison,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.morph,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.stemtype,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.derivtype,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ]
+    ])
+  }
+
   _initializeFeatures () {
     let features = {}
     let code = this.toCode()
     features[Feature.types.part] = new FeatureType(Feature.types.part,
-      [ Constants.POFS_ADVERB,
+      [Constants.POFS_ADVERB,
         Constants.POFS_ADVERBIAL,
         Constants.POFS_ADJECTIVE,
         Constants.POFS_ARTICLE,
@@ -39,9 +159,9 @@ class LanguageModel {
         Constants.POFS_SUFFIX,
         Constants.POFS_SUPINE,
         Constants.POFS_VERB,
-        Constants.POFS_VERB_PARTICIPLE ], code)
+        Constants.POFS_VERB_PARTICIPLE], code)
     features[Feature.types.gender] = new FeatureType(Feature.types.gender,
-      [ Constants.GEND_MASCULINE, Constants.GEND_FEMININE, Constants.GEND_NEUTER ], code)
+      [Constants.GEND_MASCULINE, Constants.GEND_FEMININE, Constants.GEND_NEUTER], code)
     features[Feature.types.type] = new FeatureType(Feature.types.type,
       [Constants.TYPE_REGULAR, Constants.TYPE_IRREGULAR], code)
     features[Feature.types.person] = new FeatureType(Feature.types.person,
@@ -56,8 +176,6 @@ class LanguageModel {
     features[Feature.types.frequency] = new FeatureType(Feature.types.frequency,
       [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.geo] = new FeatureType(Feature.types.geo,
-      [FeatureType.UNRESTRICTED_VALUE], code)
-    features[Feature.types.source] = new FeatureType(Feature.types.source,
       [FeatureType.UNRESTRICTED_VALUE], code)
     features[Feature.types.pronunciation] = new FeatureType(Feature.types.pronunciation,
       [FeatureType.UNRESTRICTED_VALUE], code)
@@ -128,7 +246,7 @@ class LanguageModel {
    * @returns {String} a string containing valid puncutation symbols
    */
   getPunctuation () {
-    return ".,;:!?'\"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r"
+    return '.,;:!?\'"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r'
   }
 
   toString () {
@@ -210,11 +328,12 @@ class LanguageModel {
     for (let infl of inflections) {
       let groupingKey = new InflectionGroupingKey(infl,
         [Feature.types.part, Feature.types.dialect, Feature.types.comparison],
-        { prefix: infl.prefix,
+        {
+          prefix: infl.prefix,
           suffix: infl.suffix,
           stem: infl.stem
         }
-        )
+      )
       let groupingKeyStr = groupingKey.toString()
       if (grouped.has(groupingKeyStr)) {
         grouped.get(groupingKeyStr).append(infl)

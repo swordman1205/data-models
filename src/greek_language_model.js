@@ -21,6 +21,104 @@ class GreekLanguageModel extends LanguageModel {
     this.features = this._initializeFeatures()
   }
 
+  static get featureValues () {
+    /*
+    This could be a static variable, but then it will create a circular reference:
+    Feature -> LanguageModelFactory -> LanguageModel -> Feature
+     */
+    return new Map([
+      ...LanguageModel.featureValues,
+      [
+        Feature.types.grmClass,
+        [
+          Constants.CLASS_DEMONSTRATIVE,
+          Constants.CLASS_GENERAL_RELATIVE,
+          Constants.CLASS_INDEFINITE,
+          Constants.CLASS_INTENSIVE,
+          Constants.CLASS_INTERROGATIVE,
+          Constants.CLASS_PERSONAL,
+          Constants.CLASS_POSSESSIVE,
+          Constants.CLASS_RECIPROCAL,
+          Constants.CLASS_REFLEXIVE,
+          Constants.CLASS_RELATIVE
+        ]
+      ],
+      [
+        Feature.types.number,
+        [
+          Constants.NUM_SINGULAR,
+          Constants.NUM_PLURAL,
+          Constants.NUM_DUAL
+        ]
+      ],
+      [
+        Feature.types.grmCase,
+        [
+          Constants.CASE_NOMINATIVE,
+          Constants.CASE_GENITIVE,
+          Constants.CASE_DATIVE,
+          Constants.CASE_ACCUSATIVE,
+          Constants.CASE_VOCATIVE
+        ]
+      ],
+      [
+        Feature.types.declension,
+        [
+          Constants.ORD_1ST,
+          Constants.ORD_2ND,
+          Constants.ORD_3RD
+        ]
+      ],
+      [
+        Feature.types.tense,
+        [
+          Constants.TENSE_PRESENT,
+          Constants.TENSE_IMPERFECT,
+          Constants.TENSE_FUTURE,
+          Constants.TENSE_PERFECT,
+          Constants.TENSE_PLUPERFECT,
+          Constants.TENSE_FUTURE_PERFECT,
+          Constants.TENSE_AORIST
+        ]
+      ],
+      [
+        Feature.types.voice,
+        [
+          Constants.VOICE_PASSIVE,
+          Constants.VOICE_ACTIVE,
+          Constants.VOICE_MEDIOPASSIVE,
+          Constants.VOICE_MIDDLE
+        ]
+      ],
+      [
+        Feature.types.mood,
+        [
+          Constants.MOOD_INDICATIVE,
+          Constants.MOOD_SUBJUNCTIVE,
+          Constants.MOOD_OPTATIVE,
+          Constants.MOOD_IMPERATIVE
+        ]
+      ],
+      [
+        Feature.types.dialect,
+        [
+          'attic',
+          'epic',
+          'doric'
+        ]
+      ]
+    ])
+  }
+
+  static getFeatureType (name) {
+    let featureValues = GreekLanguageModel.featureValues
+    if (featureValues.has(name)) {
+      return new FeatureType(name, featureValues.get(name), GreekLanguageModel.sourceLanguage)
+    } else {
+      throw new Error(`Feature "${name}" is not defined`)
+    }
+  }
+
   _initializeFeatures () {
     let features = super._initializeFeatures()
     let code = this.toCode()

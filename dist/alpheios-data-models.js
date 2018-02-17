@@ -851,7 +851,7 @@ class InflectionGroup {
  * @class  LanguageModel is the base class for language-specific behavior
  */
 class LanguageModel {
-   /**
+  /**
    */
   constructor () {
     this.sourceLanguage = null;
@@ -862,11 +862,131 @@ class LanguageModel {
     this.codes = [];
   }
 
+  static get featureValues () {
+    /*
+    This could be a static variable, but then it will create a circular reference:
+    Feature -> LanguageModelFactory -> LanguageModel -> Feature
+     */
+    return new Map([
+      [
+        Feature.types.part,
+        [
+          POFS_ADVERB,
+          POFS_ADVERBIAL,
+          POFS_ADJECTIVE,
+          POFS_ARTICLE,
+          POFS_CONJUNCTION,
+          POFS_EXCLAMATION,
+          POFS_INTERJECTION,
+          POFS_NOUN,
+          POFS_NUMERAL,
+          POFS_PARTICLE,
+          POFS_PREFIX,
+          POFS_PREPOSITION,
+          POFS_PRONOUN,
+          POFS_SUFFIX,
+          POFS_SUPINE,
+          POFS_VERB,
+          POFS_VERB_PARTICIPLE
+        ]
+      ],
+      [
+        Feature.types.gender,
+        [
+          GEND_MASCULINE,
+          GEND_FEMININE,
+          GEND_NEUTER
+        ]
+      ],
+      [
+        Feature.types.type,
+        [
+          TYPE_REGULAR,
+          TYPE_IRREGULAR
+        ]
+      ],
+      [
+        Feature.types.person,
+        [
+          ORD_1ST,
+          ORD_2ND,
+          ORD_3RD
+        ]
+      ],
+      [
+        Feature.types.age,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.area,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.source,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.frequency,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.geo,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.pronunciation,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.kind,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.comparison,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.morph,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.stemtype,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ],
+      [
+        Feature.types.derivtype,
+        [
+          FeatureType.UNRESTRICTED_VALUE
+        ]
+      ]
+    ])
+  }
+
   _initializeFeatures () {
     let features = {};
     let code = this.toCode();
     features[Feature.types.part] = new FeatureType(Feature.types.part,
-      [ POFS_ADVERB,
+      [POFS_ADVERB,
         POFS_ADVERBIAL,
         POFS_ADJECTIVE,
         POFS_ARTICLE,
@@ -882,9 +1002,9 @@ class LanguageModel {
         POFS_SUFFIX,
         POFS_SUPINE,
         POFS_VERB,
-        POFS_VERB_PARTICIPLE ], code);
+        POFS_VERB_PARTICIPLE], code);
     features[Feature.types.gender] = new FeatureType(Feature.types.gender,
-      [ GEND_MASCULINE, GEND_FEMININE, GEND_NEUTER ], code);
+      [GEND_MASCULINE, GEND_FEMININE, GEND_NEUTER], code);
     features[Feature.types.type] = new FeatureType(Feature.types.type,
       [TYPE_REGULAR, TYPE_IRREGULAR], code);
     features[Feature.types.person] = new FeatureType(Feature.types.person,
@@ -899,8 +1019,6 @@ class LanguageModel {
     features[Feature.types.frequency] = new FeatureType(Feature.types.frequency,
       [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.geo] = new FeatureType(Feature.types.geo,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.source] = new FeatureType(Feature.types.source,
       [FeatureType.UNRESTRICTED_VALUE], code);
     features[Feature.types.pronunciation] = new FeatureType(Feature.types.pronunciation,
       [FeatureType.UNRESTRICTED_VALUE], code);
@@ -971,7 +1089,7 @@ class LanguageModel {
    * @returns {String} a string containing valid puncutation symbols
    */
   getPunctuation () {
-    return ".,;:!?'\"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r"
+    return '.,;:!?\'"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r'
   }
 
   toString () {
@@ -1053,11 +1171,12 @@ class LanguageModel {
     for (let infl of inflections) {
       let groupingKey = new InflectionGroupingKey(infl,
         [Feature.types.part, Feature.types.dialect, Feature.types.comparison],
-        { prefix: infl.prefix,
+        {
+          prefix: infl.prefix,
           suffix: infl.suffix,
           stem: infl.stem
         }
-        );
+      );
       let groupingKeyStr = groupingKey.toString();
       if (grouped.has(groupingKeyStr)) {
         grouped.get(groupingKeyStr).append(infl);
@@ -1321,6 +1440,104 @@ class GreekLanguageModel extends LanguageModel {
     this.baseUnit = LANG_UNIT_WORD;
     this.languageCodes = GreekLanguageModel.codes;
     this.features = this._initializeFeatures();
+  }
+
+  static get featureValues () {
+    /*
+    This could be a static variable, but then it will create a circular reference:
+    Feature -> LanguageModelFactory -> LanguageModel -> Feature
+     */
+    return new Map([
+      ...LanguageModel.featureValues,
+      [
+        Feature.types.grmClass,
+        [
+          CLASS_DEMONSTRATIVE,
+          CLASS_GENERAL_RELATIVE,
+          CLASS_INDEFINITE,
+          CLASS_INTENSIVE,
+          CLASS_INTERROGATIVE,
+          CLASS_PERSONAL,
+          CLASS_POSSESSIVE,
+          CLASS_RECIPROCAL,
+          CLASS_REFLEXIVE,
+          CLASS_RELATIVE
+        ]
+      ],
+      [
+        Feature.types.number,
+        [
+          NUM_SINGULAR,
+          NUM_PLURAL,
+          NUM_DUAL
+        ]
+      ],
+      [
+        Feature.types.grmCase,
+        [
+          CASE_NOMINATIVE,
+          CASE_GENITIVE,
+          CASE_DATIVE,
+          CASE_ACCUSATIVE,
+          CASE_VOCATIVE
+        ]
+      ],
+      [
+        Feature.types.declension,
+        [
+          ORD_1ST,
+          ORD_2ND,
+          ORD_3RD
+        ]
+      ],
+      [
+        Feature.types.tense,
+        [
+          TENSE_PRESENT,
+          TENSE_IMPERFECT,
+          TENSE_FUTURE,
+          TENSE_PERFECT,
+          TENSE_PLUPERFECT,
+          TENSE_FUTURE_PERFECT,
+          TENSE_AORIST
+        ]
+      ],
+      [
+        Feature.types.voice,
+        [
+          VOICE_PASSIVE,
+          VOICE_ACTIVE,
+          VOICE_MEDIOPASSIVE,
+          VOICE_MIDDLE
+        ]
+      ],
+      [
+        Feature.types.mood,
+        [
+          MOOD_INDICATIVE,
+          MOOD_SUBJUNCTIVE,
+          MOOD_OPTATIVE,
+          MOOD_IMPERATIVE
+        ]
+      ],
+      [
+        Feature.types.dialect,
+        [
+          'attic',
+          'epic',
+          'doric'
+        ]
+      ]
+    ])
+  }
+
+  static getFeatureType (name) {
+    let featureValues = GreekLanguageModel.featureValues;
+    if (featureValues.has(name)) {
+      return new FeatureType(name, featureValues.get(name), GreekLanguageModel.sourceLanguage)
+    } else {
+      throw new Error(`Feature "${name}" is not defined`)
+    }
   }
 
   _initializeFeatures () {
@@ -1664,7 +1881,7 @@ const MODELS = new Map([
 class LanguageModelFactory {
   /**
    * Checks whether a language is supported
-   * @param {String | Symbol} language - Language as a language ID (Symbol) or a language code (String)
+   * @param {string | symbol} language - Language as a language ID (symbol) or a language code (string)
    * @return {boolean} True if language is supported, false otherwise
    */
   static supportsLanguage (language) {
@@ -1684,8 +1901,8 @@ class LanguageModelFactory {
 
   /**
    * Converts an ISO 639-3 language code to a language ID
-   * @param {String} languageCode - An ISO 639-3 language code
-   * @return {Symbol | undefined} A language ID or undefined if language ID is not found
+   * @param {string} languageCode - An ISO 639-3 language code
+   * @return {symbol | undefined} A language ID or undefined if language ID is not found
    */
   static getLanguageIdFromCode (languageCode) {
     for (const languageModel of MODELS.values()) {
@@ -1697,8 +1914,8 @@ class LanguageModelFactory {
 
   /**
    * Converts a language ID to an default ISO 639-3 language code for that language
-   * @param {Symbol} languageID - A language ID
-   * @return {String | undefined} An ISO 639-3 language code or undefined if language code is not found
+   * @param {symbol} languageID - A language ID
+   * @return {string | undefined} An ISO 639-3 language code or undefined if language code is not found
    */
   static getLanguageCodeFromId (languageID) {
     for (const languageModel of MODELS.values()) {
@@ -1710,10 +1927,10 @@ class LanguageModelFactory {
 
   /**
    * Takes either a language ID or a language code and returns an object with both an ID and a code.
-   * @param {String | Symbol} language - Either a language ID (a Symbol) or a language code (a String).
-   * @return {Object} An object with the following properties:
-   *    {Symbol} languageID
-   *    {String} languageCode
+   * @param {string | symbol} language - Either a language ID (a Symbol) or a language code (a String).
+   * @return {object} An object with the following properties:
+   *    {symbol} languageID
+   *    {string} languageCode
    */
   static getLanguageAttrs (language) {
     if (typeof language === 'symbol') {
@@ -1735,8 +1952,8 @@ class LanguageModelFactory {
    * Compares two languages in either a language ID or a language code format. For this, does conversion of
    * language IDs to language code. Because fo this, it will work even for language IDs defined in
    * different modules
-   * @param {String | Symbol} languageA - Either a language ID (a Symbol) or a language code (a String).
-   * @param {String | Symbol} languageB - Either a language ID (a Symbol) or a language code (a String).
+   * @param {string | symbol} languageA - Either a language ID (a symbol) or a language code (a string).
+   * @param {string | symbol} languageB - Either a language ID (a symbol) or a language code (a string).
    * @return {boolean} True if languages are the same, false otherwise.
    */
   static compareLanguages (languageA, languageB) {
