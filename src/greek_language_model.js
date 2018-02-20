@@ -1,4 +1,5 @@
 import LanguageModel from './language_model.js'
+import LanguageModelFactory from './language_model_factory.js'
 import * as Constants from './constants.js'
 import Feature from './feature.js'
 import FeatureType from './feature_type.js'
@@ -294,7 +295,8 @@ class GreekLanguageModel extends LanguageModel {
   static getInflectionGrammar (inflection) {
     let grammar = {
       fullFormBased: false,
-      suffixBased: false
+      suffixBased: false,
+      pronounClassRequired: false
     }
     if (inflection.hasOwnProperty(Feature.types.part) &&
       Array.isArray(inflection[Feature.types.part]) &&
@@ -309,11 +311,20 @@ class GreekLanguageModel extends LanguageModel {
     } else {
       console.warn(`Unable to set grammar: part of speech data is missing or is incorrect`, inflection[Feature.types.part])
     }
+
+    grammar.pronounClassRequired =
+      LanguageModelFactory.compareLanguages(GreekLanguageModel.languageID, inflection.languageID) &&
+      inflection.hasOwnProperty(Feature.types.part) &&
+      Array.isArray(inflection[Feature.types.part]) &&
+      inflection[Feature.types.part].length >= 1 &&
+      inflection[Feature.types.part][0].value === Constants.POFS_PRONOUN
+
     return grammar
   }
 
   /**
-   * Finds a grammar class(es) in a pronoun source data that match(es) a provided pronoun.
+   * Determine a class of a given word (a pronoun).
+   * Finds grammar class(es) in a pronoun source data that match(es) a provided pronoun.
    * @param {Form[]} forms - An array of known forms of pronouns.
    * @param {string} word - A word we need to find a matching class for.
    * @param {boolean} normalize - Whether normalized forms of words shall be used for comparison.

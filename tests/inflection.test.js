@@ -20,9 +20,16 @@ describe('Inflection object', () => {
       prefix: null,
       example: null,
       languageCode: grc,
-      languageID: Constants.LANG_GREEK
+      languageID: Constants.LANG_GREEK,
+      model: expect.anything(),
+      grm: {
+        fullFormBased: false,
+        suffixBased: false
+      }
     })
   })
+
+  // grm": {"fullFormBased": false, "suffixBased": false}
 
   test('Should not allow empty arguments', () => {
     expect(() => new Inflection('stem', '')).toThrowError(/empty/)
