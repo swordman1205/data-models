@@ -27,7 +27,7 @@ class Inflection {
     /**
      * Initializes an Inflection object.
      * @param {string} stem - A stem of a word.
-     * @param {String | Symbol} language - A word's language.
+     * @param {string | symbol} language - A word's language.
      * @param {string} suffix - a suffix of a word
      * @param {prefix} prefix - a prefix of a word
      * @param {example} example - example
@@ -49,15 +49,29 @@ class Inflection {
     this.languageID = undefined
     this.languageCode = undefined
     ;({languageID: this.languageID, languageCode: this.languageCode} = LMF.getLanguageAttrs(language))
+    this.model = LMF.getLanguageModel(this.languageID)
 
-    // Suffix may not be present in every word. If missing, it will set to null.
+    // A grammatical data object
+    this.grm = {
+      fullFormBased: false, // True this inflection stores and requires to use a full form of a word
+      suffixBased: false    // True if only suffix is enough to identify this inflection
+    }
+
+    // Suffix may not be present in every word. If missing, it will be set to null.
     this.suffix = suffix
 
-    // Prefix may not be present in every word. If missing, it will set to null.
+    // Prefix may not be present in every word. If missing, it will be set to null.
     this.prefix = prefix
 
     // Example may not be provided
     this.example = example
+  }
+
+  get form () {
+    let form = this.prefix ? this.prefix : ''
+    form = form + this.stem
+    form = this.suffix ? form + this.suffix : form
+    return form
   }
 
   /**
@@ -67,6 +81,22 @@ class Inflection {
   get language () {
     console.warn(`Please use a "languageID" instead of a "language"`)
     return this.languageCode
+  }
+
+  /**
+   * Sets grammar properties based on inflection info
+   */
+  setGrammar () {
+    let grammarData = this.model.getInflectionGrammar(this)
+    this.grm = Object.assign(this.grm, grammarData)
+  }
+
+  compareWithWord (word, normalize = true) {
+    const model = LMF.getLanguageModel(this.languageID)
+    const value = this.grm.suffixBased ? this.suffix : this.form
+    return normalize
+      ? model.normalizeWord(value) === model.normalizeWord(word)
+      : value === word
   }
 
   static readObject (jsonObject) {

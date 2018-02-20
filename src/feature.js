@@ -9,7 +9,7 @@ class Feature {
      * @param {string | string[]} value - A single feature value or, if this feature could have multiple
      * values, an array of values.
      * @param {string} type - A type of the feature, allowed values are specified in 'types' object.
-     * @param {String | Symbol} language - A language of a feature, allowed values are specified in 'languages' object.
+     * @param {string | symbol} language - A language of a feature, allowed values are specified in 'languages' object.
      * @param {int} sortOrder - an integer used for sorting
      */
   constructor (value, type, language, sortOrder = 1) {

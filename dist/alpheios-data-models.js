@@ -1068,7 +1068,7 @@ class LanguageModel {
    *          override in language-specific subclass)
    * @type String
    */
-  normalizeWord (word) {
+  static normalizeWord (word) {
     return word
   }
 
@@ -1386,7 +1386,7 @@ class LatinLanguageModel extends LanguageModel {
    * @returns the normalized form of the word (Latin replaces accents and special chars)
    * @type String
    */
-  normalizeWord (word) {
+  static normalizeWord (word) {
     if (word) {
       word = word.replace(/[\u00c0\u00c1\u00c2\u00c3\u00c4\u0100\u0102]/g, 'A');
       word = word.replace(/[\u00c8\u00c9\u00ca\u00cb\u0112\u0114]/g, 'E');
@@ -1428,7 +1428,7 @@ class LatinLanguageModel extends LanguageModel {
  * @class  LatinLanguageModel is the lass for Latin specific behavior
  */
 class GreekLanguageModel extends LanguageModel {
-   /**
+  /**
    * @constructor
    */
   constructor () {
@@ -1440,6 +1440,10 @@ class GreekLanguageModel extends LanguageModel {
     this.baseUnit = LANG_UNIT_WORD;
     this.languageCodes = GreekLanguageModel.codes;
     this.features = this._initializeFeatures();
+  }
+
+  static get languageID () {
+    return LANG_GREEK
   }
 
   static get featureValues () {
@@ -1544,7 +1548,7 @@ class GreekLanguageModel extends LanguageModel {
     let features = super._initializeFeatures();
     let code = this.toCode();
     features[Feature.types.grmClass] = new FeatureType(Feature.types.grmClass,
-      [ CLASS_DEMONSTRATIVE,
+      [CLASS_DEMONSTRATIVE,
         CLASS_GENERAL_RELATIVE,
         CLASS_INDEFINITE,
         CLASS_INTENSIVE,
@@ -1558,16 +1562,16 @@ class GreekLanguageModel extends LanguageModel {
       code);
     features[Feature.types.number] = new FeatureType(Feature.types.number, [NUM_SINGULAR, NUM_PLURAL, NUM_DUAL], code);
     features[Feature.types.grmCase] = new FeatureType(Feature.types.grmCase,
-      [ CASE_NOMINATIVE,
+      [CASE_NOMINATIVE,
         CASE_GENITIVE,
         CASE_DATIVE,
         CASE_ACCUSATIVE,
         CASE_VOCATIVE
       ], code);
     features[Feature.types.declension] = new FeatureType(Feature.types.declension,
-      [ ORD_1ST, ORD_2ND, ORD_3RD ], code);
+      [ORD_1ST, ORD_2ND, ORD_3RD], code);
     features[Feature.types.tense] = new FeatureType(Feature.types.tense,
-      [ TENSE_PRESENT,
+      [TENSE_PRESENT,
         TENSE_IMPERFECT,
         TENSE_FUTURE,
         TENSE_PERFECT,
@@ -1576,13 +1580,13 @@ class GreekLanguageModel extends LanguageModel {
         TENSE_AORIST
       ], code);
     features[Feature.types.voice] = new FeatureType(Feature.types.voice,
-      [ VOICE_PASSIVE,
+      [VOICE_PASSIVE,
         VOICE_ACTIVE,
         VOICE_MEDIOPASSIVE,
         VOICE_MIDDLE
       ], code);
     features[Feature.types.mood] = new FeatureType(Feature.types.mood,
-      [ MOOD_INDICATIVE,
+      [MOOD_INDICATIVE,
         MOOD_SUBJUNCTIVE,
         MOOD_OPTATIVE,
         MOOD_IMPERATIVE
@@ -1628,6 +1632,7 @@ class GreekLanguageModel extends LanguageModel {
   canInflect (node) {
     return false
   }
+
   /**
    * @override LanguageModel#grammarFeatures
    */
@@ -1638,12 +1643,12 @@ class GreekLanguageModel extends LanguageModel {
 
   /**
    * Return a normalized version of a word which can be used to compare the word for equality
-   * @param {String} word the source word
-   * @returns the normalized form of the word (default version just returns the same word,
+   * @param {string} word the source word
+   * @returns {string} the normalized form of the word (default version just returns the same word,
    *          override in language-specific subclass)
-   * @type String
+   * @type string
    */
-  normalizeWord (word) {
+  static normalizeWord (word) {
     // we normalize greek to NFC - Normalization Form Canonical Composition
     if (word) {
       return word.normalize('NFC')
@@ -1666,7 +1671,7 @@ class GreekLanguageModel extends LanguageModel {
     // 2. When looking up a verb in the verb paradigm tables
     //    it set e_normalize to false, otherwise it was true...
     // make sure it's normalized to NFC and in lower case
-    let normalized = this.normalizeWord(word).toLocaleLowerCase();
+    let normalized = GreekLanguageModel.normalizeWord(word).toLocaleLowerCase();
     let strippedVowelLength = normalized.replace(
       /[\u{1FB0}\u{1FB1}]/ug, '\u{03B1}').replace(
       /[\u{1FB8}\u{1FB9}]/ug, '\u{0391}').replace(
@@ -1704,7 +1709,61 @@ class GreekLanguageModel extends LanguageModel {
    * @returns {String} a string containing valid puncutation symbols
    */
   getPunctuation () {
-    return ".,;:!?'\"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r"
+    return '.,;:!?\'"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r'
+  }
+
+  static getInflectionGrammar (inflection) {
+    let grammar = {
+      fullFormBased: false,
+      suffixBased: false
+    };
+    if (inflection.hasOwnProperty(Feature.types.part) &&
+      Array.isArray(inflection[Feature.types.part]) &&
+      inflection[Feature.types.part].length === 1) {
+      let partOfSpeech = inflection[Feature.types.part][0];
+      // TODO: this should be language specific
+      if (partOfSpeech.value === POFS_PRONOUN) {
+        grammar.fullFormBased = true;
+      } else {
+        grammar.suffixBased = true;
+      }
+    } else {
+      console.warn(`Unable to set grammar: part of speech data is missing or is incorrect`, inflection[Feature.types.part]);
+    }
+    return grammar
+  }
+
+  /**
+   * Finds a grammar class(es) in a pronoun source data that match(es) a provided pronoun.
+   * @param {Form[]} forms - An array of known forms of pronouns.
+   * @param {string} word - A word we need to find a matching class for.
+   * @param {boolean} normalize - Whether normalized forms of words shall be used for comparison.
+   * @return {Feature[]} Matching classes found in an array of Feature objects. If no matching classes found,
+   * returns an empty array.
+   */
+  static getPronounClasses (forms, word, normalize = true) {
+    let classes = [];
+    let matchingValues = new Set(); // Will eliminate duplicated values
+    let matchingForms = forms.filter(
+      form => {
+        let match = false;
+        if (form.value) {
+          match = normalize
+            ? GreekLanguageModel.normalizeWord(form.value) === GreekLanguageModel.normalizeWord(word)
+            : form.value === word;
+        }
+        return match
+      }
+    );
+    for (const matchingForm of matchingForms) {
+      if (matchingForm.features.hasOwnProperty(Feature.types.grmClass)) {
+        matchingValues.add(matchingForm.features[Feature.types.grmClass]);
+      }
+    }
+    for (const matchingValue of matchingValues) {
+      classes.push(new Feature(matchingValue, Feature.types.grmClass, GreekLanguageModel.languageID));
+    }
+    return classes
   }
 }
 
@@ -1889,6 +1948,21 @@ class LanguageModelFactory {
     return MODELS.has(language)
   }
 
+  /**
+   * Returns a constructor of language model for a specific language ID.
+   * @param {symbol} languageID - A language ID of a desired language model.
+   * @return {LanguageModel} A language model for a given language ID.
+   */
+  static getLanguageModel (languageID) {
+    let languageCode = LanguageModelFactory.getLanguageCodeFromId(languageID);
+    if (MODELS.has(languageCode)) {
+      return MODELS.get(languageCode)
+    } else {
+      // A default value
+      return LanguageModel
+    }
+  }
+
   static getLanguageForCode (code = null) {
     let Model = MODELS.get(code);
     if (Model) {
@@ -1992,7 +2066,7 @@ class Feature {
      * @param {string | string[]} value - A single feature value or, if this feature could have multiple
      * values, an array of values.
      * @param {string} type - A type of the feature, allowed values are specified in 'types' object.
-     * @param {String | Symbol} language - A language of a feature, allowed values are specified in 'languages' object.
+     * @param {string | symbol} language - A language of a feature, allowed values are specified in 'languages' object.
      * @param {int} sortOrder - an integer used for sorting
      */
   constructor (value, type, language, sortOrder = 1) {
@@ -2278,7 +2352,7 @@ class Inflection {
     /**
      * Initializes an Inflection object.
      * @param {string} stem - A stem of a word.
-     * @param {String | Symbol} language - A word's language.
+     * @param {string | symbol} language - A word's language.
      * @param {string} suffix - a suffix of a word
      * @param {prefix} prefix - a prefix of a word
      * @param {example} example - example
@@ -2300,15 +2374,29 @@ class Inflection {
     this.languageID = undefined;
     this.languageCode = undefined
     ;({languageID: this.languageID, languageCode: this.languageCode} = LanguageModelFactory.getLanguageAttrs(language));
+    this.model = LanguageModelFactory.getLanguageModel(this.languageID);
 
-    // Suffix may not be present in every word. If missing, it will set to null.
+    // A grammatical data object
+    this.grm = {
+      fullFormBased: false, // True this inflection stores and requires to use a full form of a word
+      suffixBased: false    // True if only suffix is enough to identify this inflection
+    };
+
+    // Suffix may not be present in every word. If missing, it will be set to null.
     this.suffix = suffix;
 
-    // Prefix may not be present in every word. If missing, it will set to null.
+    // Prefix may not be present in every word. If missing, it will be set to null.
     this.prefix = prefix;
 
     // Example may not be provided
     this.example = example;
+  }
+
+  get form () {
+    let form = this.prefix ? this.prefix : '';
+    form = form + this.stem;
+    form = this.suffix ? form + this.suffix : form;
+    return form
   }
 
   /**
@@ -2318,6 +2406,22 @@ class Inflection {
   get language () {
     console.warn(`Please use a "languageID" instead of a "language"`);
     return this.languageCode
+  }
+
+  /**
+   * Sets grammar properties based on inflection info
+   */
+  setGrammar () {
+    let grammarData = this.model.getInflectionGrammar(this);
+    this.grm = Object.assign(this.grm, grammarData);
+  }
+
+  compareWithWord (word, normalize = true) {
+    const model = LanguageModelFactory.getLanguageModel(this.languageID);
+    const value = this.grm.suffixBased ? this.suffix : this.form;
+    return normalize
+      ? model.normalizeWord(value) === model.normalizeWord(word)
+      : value === word
   }
 
   static readObject (jsonObject) {

@@ -110,7 +110,7 @@ class LatinLanguageModel extends LanguageModel {
    * @returns the normalized form of the word (Latin replaces accents and special chars)
    * @type String
    */
-  normalizeWord (word) {
+  static normalizeWord (word) {
     if (word) {
       word = word.replace(/[\u00c0\u00c1\u00c2\u00c3\u00c4\u0100\u0102]/g, 'A')
       word = word.replace(/[\u00c8\u00c9\u00ca\u00cb\u0112\u0114]/g, 'E')

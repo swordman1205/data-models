@@ -225,7 +225,7 @@ class LanguageModel {
    *          override in language-specific subclass)
    * @type String
    */
-  normalizeWord (word) {
+  static normalizeWord (word) {
     return word
   }
 

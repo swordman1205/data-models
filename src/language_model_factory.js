@@ -25,6 +25,21 @@ class LanguageModelFactory {
     return MODELS.has(language)
   }
 
+  /**
+   * Returns a constructor of language model for a specific language ID.
+   * @param {symbol} languageID - A language ID of a desired language model.
+   * @return {LanguageModel} A language model for a given language ID.
+   */
+  static getLanguageModel (languageID) {
+    let languageCode = LanguageModelFactory.getLanguageCodeFromId(languageID)
+    if (MODELS.has(languageCode)) {
+      return MODELS.get(languageCode)
+    } else {
+      // A default value
+      return LanguageModel
+    }
+  }
+
   static getLanguageForCode (code = null) {
     let Model = MODELS.get(code)
     if (Model) {
