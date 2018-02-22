@@ -24,7 +24,9 @@ describe('Inflection object', () => {
       model: expect.anything(),
       grm: {
         fullFormBased: false,
-        suffixBased: false
+        suffixBased: false,
+        obligatoryMatches: expect.arrayContaining([]),
+        optionalMatches: expect.arrayContaining([])
       }
     })
   })

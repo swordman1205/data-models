@@ -1422,6 +1422,33 @@ class LatinLanguageModel extends LanguageModel {
   static toCode () {
     return STR_LANG_CODE_LAT
   }
+
+  /**
+   * Sets inflection grammar properties based on its characteristics
+   * @param {Inflection} inflection - An inflection object
+   * @return {Object} Inflection properties
+   */
+  static getInflectionGrammar (inflection) {
+    let grammar = {
+      fullFormBased: false,
+      suffixBased: false,
+      pronounClassRequired: false
+    };
+    if (inflection.hasOwnProperty(Feature.types.part) &&
+      Array.isArray(inflection[Feature.types.part]) &&
+      inflection[Feature.types.part].length === 1) {
+      let partOfSpeech = inflection[Feature.types.part][0];
+      if (partOfSpeech.value === POFS_PRONOUN) {
+        grammar.fullFormBased = true;
+      } else {
+        grammar.suffixBased = true;
+      }
+    } else {
+      console.warn(`Unable to set grammar: part of speech data is missing or is incorrect`, inflection[Feature.types.part]);
+    }
+
+    return grammar
+  }
 }
 
 /**
@@ -1712,6 +1739,11 @@ class GreekLanguageModel extends LanguageModel {
     return '.,;:!?\'"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r'
   }
 
+  /**
+   * Sets inflection grammar properties based on its characteristics
+   * @param {Inflection} inflection - An inflection object
+   * @return {Object} Inflection properties
+   */
   static getInflectionGrammar (inflection) {
     let grammar = {
       fullFormBased: false,
@@ -1722,7 +1754,6 @@ class GreekLanguageModel extends LanguageModel {
       Array.isArray(inflection[Feature.types.part]) &&
       inflection[Feature.types.part].length === 1) {
       let partOfSpeech = inflection[Feature.types.part][0];
-      // TODO: this should be language specific
       if (partOfSpeech.value === POFS_PRONOUN) {
         grammar.fullFormBased = true;
       } else {
@@ -2480,6 +2511,12 @@ class Inflection {
     }
   }
 
+  /**
+   * Checks whether an inflection has a feature with `featureName` name and `featureValue` value
+   * @param {string} featureName - A name of a feature
+   * @param {string} featureValue - A value of a feature
+   * @return {boolean} True if an inflection contains a feature, false otherwise
+   */
   hasFeatureValue (featureName, featureValue) {
     if (this.hasOwnProperty(featureName) && Array.isArray(this[featureName]) && this[featureName].length > 0) {
       for (let feature of this[featureName]) {
@@ -2668,7 +2705,7 @@ class Homonym {
   }
 
   /**
-   * Returns a list of all inflections within all lexemes
+   * Returns a list of all inflections within all lexemes of a homonym
    * @return {Inflection[]} An array of inflections
    */
   get inflections () {
