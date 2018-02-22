@@ -292,6 +292,11 @@ class GreekLanguageModel extends LanguageModel {
     return '.,;:!?\'"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r'
   }
 
+  /**
+   * Sets inflection grammar properties based on its characteristics
+   * @param {Inflection} inflection - An inflection object
+   * @return {Object} Inflection properties
+   */
   static getInflectionGrammar (inflection) {
     let grammar = {
       fullFormBased: false,
@@ -302,7 +307,6 @@ class GreekLanguageModel extends LanguageModel {
       Array.isArray(inflection[Feature.types.part]) &&
       inflection[Feature.types.part].length === 1) {
       let partOfSpeech = inflection[Feature.types.part][0]
-      // TODO: this should be language specific
       if (partOfSpeech.value === Constants.POFS_PRONOUN) {
         grammar.fullFormBased = true
       } else {
@@ -323,8 +327,12 @@ class GreekLanguageModel extends LanguageModel {
   }
 
   /**
-   * Determine a class of a given word (a pronoun).
-   * Finds grammar class(es) in a pronoun source data that match(es) a provided pronoun.
+   * Determines a class of a given word (pronoun) by finding a matching word entry(ies)
+   * in a pronoun source info (`forms`) and getting a single or multiple classes of those entries.
+   * Some morphological analyzers provide class information that is unreliable or do not
+   * provide class information at all. However, class information is essential in
+   * deciding in what table should pronouns be grouped. For this, we have to
+   * determine pronoun classes using this method.
    * @param {Form[]} forms - An array of known forms of pronouns.
    * @param {string} word - A word we need to find a matching class for.
    * @param {boolean} normalize - Whether normalized forms of words shall be used for comparison.

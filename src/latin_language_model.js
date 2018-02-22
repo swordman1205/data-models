@@ -146,5 +146,32 @@ class LatinLanguageModel extends LanguageModel {
   static toCode () {
     return Constants.STR_LANG_CODE_LAT
   }
+
+  /**
+   * Sets inflection grammar properties based on its characteristics
+   * @param {Inflection} inflection - An inflection object
+   * @return {Object} Inflection properties
+   */
+  static getInflectionGrammar (inflection) {
+    let grammar = {
+      fullFormBased: false,
+      suffixBased: false,
+      pronounClassRequired: false
+    }
+    if (inflection.hasOwnProperty(Feature.types.part) &&
+      Array.isArray(inflection[Feature.types.part]) &&
+      inflection[Feature.types.part].length === 1) {
+      let partOfSpeech = inflection[Feature.types.part][0]
+      if (partOfSpeech.value === Constants.POFS_PRONOUN) {
+        grammar.fullFormBased = true
+      } else {
+        grammar.suffixBased = true
+      }
+    } else {
+      console.warn(`Unable to set grammar: part of speech data is missing or is incorrect`, inflection[Feature.types.part])
+    }
+
+    return grammar
+  }
 }
 export default LatinLanguageModel

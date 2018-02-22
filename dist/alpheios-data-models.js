@@ -1743,8 +1743,12 @@ class GreekLanguageModel extends LanguageModel {
   }
 
   /**
-   * Determine a class of a given word (a pronoun).
-   * Finds grammar class(es) in a pronoun source data that match(es) a provided pronoun.
+   * Determines a class of a given word (pronoun) by finding a matching word entry(ies)
+   * in a pronoun source info (`forms`) and getting a single or multiple classes of those entries.
+   * Some morphological analyzers provide class information that is unreliable or do not
+   * provide class information at all. However, class information is essential in
+   * deciding in what table should pronouns be grouped. For this, we have to
+   * determine pronoun classes using this method.
    * @param {Form[]} forms - An array of known forms of pronouns.
    * @param {string} word - A word we need to find a matching class for.
    * @param {boolean} normalize - Whether normalized forms of words shall be used for comparison.
@@ -2388,8 +2392,10 @@ class Inflection {
 
     // A grammatical data object
     this.grm = {
-      fullFormBased: false, // True this inflection stores and requires to use a full form of a word
-      suffixBased: false    // True if only suffix is enough to identify this inflection
+      fullFormBased: false,  // True this inflection stores and requires to use a full form of a word
+      suffixBased: false,    // True if only suffix is enough to identify this inflection
+      obligatoryMatches: [], // Names of features that should be matched in order to include a form or suffix to an inflection table
+      optionalMatches: []    // Names of features that will be recorded but are not important for inclusion of a form or suffix to an inflection table
     };
 
     // Suffix may not be present in every word. If missing, it will be set to null.
@@ -2422,8 +2428,10 @@ class Inflection {
    * Sets grammar properties based on inflection info
    */
   setGrammar () {
-    let grammarData = this.model.getInflectionGrammar(this);
-    this.grm = Object.assign(this.grm, grammarData);
+    if (this.model.hasOwnProperty('getInflectionGrammar')) {
+      let grammarData = this.model.getInflectionGrammar(this);
+      this.grm = Object.assign(this.grm, grammarData);
+    }
   }
 
   compareWithWord (word, normalize = true) {
@@ -2470,6 +2478,17 @@ class Inflection {
 
       this[type].push(element);
     }
+  }
+
+  hasFeatureValue (featureName, featureValue) {
+    if (this.hasOwnProperty(featureName) && Array.isArray(this[featureName]) && this[featureName].length > 0) {
+      for (let feature of this[featureName]) {
+        if (feature.hasValue(featureValue)) {
+          return true
+        }
+      }
+    }
+    return false
   }
 }
 
@@ -2646,6 +2665,18 @@ class Homonym {
     } else {
       throw new Error('Homonym has not been initialized properly. Unable to obtain language ID information.')
     }
+  }
+
+  /**
+   * Returns a list of all inflections within all lexemes
+   * @return {Inflection[]} An array of inflections
+   */
+  get inflections () {
+    let inflections = [];
+    for (const lexeme of this.lexemes) {
+      inflections = inflections.concat(lexeme.inflections);
+    }
+    return inflections
   }
 }
 

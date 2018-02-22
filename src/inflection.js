@@ -53,8 +53,10 @@ class Inflection {
 
     // A grammatical data object
     this.grm = {
-      fullFormBased: false, // True this inflection stores and requires to use a full form of a word
-      suffixBased: false    // True if only suffix is enough to identify this inflection
+      fullFormBased: false,  // True this inflection stores and requires to use a full form of a word
+      suffixBased: false,    // True if only suffix is enough to identify this inflection
+      obligatoryMatches: [], // Names of features that should be matched in order to include a form or suffix to an inflection table
+      optionalMatches: []    // Names of features that will be recorded but are not important for inclusion of a form or suffix to an inflection table
     }
 
     // Suffix may not be present in every word. If missing, it will be set to null.
@@ -87,8 +89,10 @@ class Inflection {
    * Sets grammar properties based on inflection info
    */
   setGrammar () {
-    let grammarData = this.model.getInflectionGrammar(this)
-    this.grm = Object.assign(this.grm, grammarData)
+    if (this.model.hasOwnProperty('getInflectionGrammar')) {
+      let grammarData = this.model.getInflectionGrammar(this)
+      this.grm = Object.assign(this.grm, grammarData)
+    }
   }
 
   compareWithWord (word, normalize = true) {
@@ -135,6 +139,23 @@ class Inflection {
 
       this[type].push(element)
     }
+  }
+
+  /**
+   * Checks whether an inflection has a feature with `featureName` name and `featureValue` value
+   * @param {string} featureName - A name of a feature
+   * @param {string} featureValue - A value of a feature
+   * @return {boolean} True if an inflection contains a feature, false otherwise
+   */
+  hasFeatureValue (featureName, featureValue) {
+    if (this.hasOwnProperty(featureName) && Array.isArray(this[featureName]) && this[featureName].length > 0) {
+      for (let feature of this[featureName]) {
+        if (feature.hasValue(featureValue)) {
+          return true
+        }
+      }
+    }
+    return false
   }
 }
 export default Inflection
