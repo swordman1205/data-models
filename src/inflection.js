@@ -51,8 +51,8 @@ class Inflection {
     ;({languageID: this.languageID, languageCode: this.languageCode} = LMF.getLanguageAttrs(language))
     this.model = LMF.getLanguageModel(this.languageID)
 
-    // A grammatical data object
-    this.grm = {
+    // A grammar constraints object
+    this.constraints = {
       fullFormBased: false,  // True this inflection stores and requires to use a full form of a word
       suffixBased: false,    // True if only suffix is enough to identify this inflection
       obligatoryMatches: [], // Names of features that should be matched in order to include a form or suffix to an inflection table
@@ -88,16 +88,16 @@ class Inflection {
   /**
    * Sets grammar properties based on inflection info
    */
-  setGrammar () {
-    if (this.model.hasOwnProperty('getInflectionGrammar')) {
-      let grammarData = this.model.getInflectionGrammar(this)
-      this.grm = Object.assign(this.grm, grammarData)
+  setConstraints () {
+    if (this.model.hasOwnProperty('getInflectionConstraints')) {
+      let constraintData = this.model.getInflectionConstraints(this)
+      this.constraints = Object.assign(this.constraints, constraintData)
     }
   }
 
   compareWithWord (word, normalize = true) {
     const model = LMF.getLanguageModel(this.languageID)
-    const value = this.grm.suffixBased ? this.suffix : this.form
+    const value = this.constraints.suffixBased ? this.suffix : this.form
     return normalize
       ? model.normalizeWord(value) === model.normalizeWord(word)
       : value === word

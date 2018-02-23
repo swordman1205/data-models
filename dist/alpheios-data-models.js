@@ -1535,7 +1535,7 @@ class LatinLanguageModel extends LanguageModel {
    * @param {Inflection} inflection - An inflection object
    * @return {Object} Inflection properties
    */
-  static getInflectionGrammar (inflection) {
+  static getInflectionConstraints (inflection) {
     let grammar = {
       fullFormBased: false,
       suffixBased: false,
@@ -1752,8 +1752,8 @@ class GreekLanguageModel extends LanguageModel {
    * @param {Inflection} inflection - An inflection object
    * @return {Object} Inflection properties
    */
-  static getInflectionGrammar (inflection) {
-    let grammar = {
+  static getInflectionConstraints (inflection) {
+    let constraints = {
       fullFormBased: false,
       suffixBased: false,
       pronounClassRequired: false
@@ -1763,22 +1763,22 @@ class GreekLanguageModel extends LanguageModel {
       inflection[Feature.types.part].length === 1) {
       let partOfSpeech = inflection[Feature.types.part][0];
       if (partOfSpeech.value === POFS_PRONOUN) {
-        grammar.fullFormBased = true;
+        constraints.fullFormBased = true;
       } else {
-        grammar.suffixBased = true;
+        constraints.suffixBased = true;
       }
     } else {
       console.warn(`Unable to set grammar: part of speech data is missing or is incorrect`, inflection[Feature.types.part]);
     }
 
-    grammar.pronounClassRequired =
+    constraints.pronounClassRequired =
       LanguageModelFactory.compareLanguages(GreekLanguageModel.languageID, inflection.languageID) &&
       inflection.hasOwnProperty(Feature.types.part) &&
       Array.isArray(inflection[Feature.types.part]) &&
       inflection[Feature.types.part].length >= 1 &&
       inflection[Feature.types.part][0].value === POFS_PRONOUN;
 
-    return grammar
+    return constraints
   }
 
   /**
@@ -1885,11 +1885,17 @@ class ArabicLanguageModel extends LanguageModel {
  */
 class PersianLanguageModel extends LanguageModel {
   static get languageID () { return LANG_PERSIAN }
+
   static get languageCode () { return STR_LANG_CODE_PER }
+
   static get languageCodes () { return [STR_LANG_CODE_PER, STR_LANG_CODE_FAS, STR_LANG_CODE_FA, STR_LANG_CODE_FA_IR] }
+
   static get contextForward () { return 0 }
+
   static get contextBackward () { return 0 }
+
   static get direction () { return LANG_DIR_RTL }
+
   static get baseUnit () { return LANG_UNIT_WORD }
 
   /**
@@ -2361,8 +2367,8 @@ class Inflection {
     ;({languageID: this.languageID, languageCode: this.languageCode} = LanguageModelFactory.getLanguageAttrs(language));
     this.model = LanguageModelFactory.getLanguageModel(this.languageID);
 
-    // A grammatical data object
-    this.grm = {
+    // A grammar constraints object
+    this.constraints = {
       fullFormBased: false,  // True this inflection stores and requires to use a full form of a word
       suffixBased: false,    // True if only suffix is enough to identify this inflection
       obligatoryMatches: [], // Names of features that should be matched in order to include a form or suffix to an inflection table
@@ -2398,16 +2404,16 @@ class Inflection {
   /**
    * Sets grammar properties based on inflection info
    */
-  setGrammar () {
-    if (this.model.hasOwnProperty('getInflectionGrammar')) {
-      let grammarData = this.model.getInflectionGrammar(this);
-      this.grm = Object.assign(this.grm, grammarData);
+  setConstraints () {
+    if (this.model.hasOwnProperty('getInflectionConstraints')) {
+      let constraintData = this.model.getInflectionConstraints(this);
+      this.constraints = Object.assign(this.constraints, constraintData);
     }
   }
 
   compareWithWord (word, normalize = true) {
     const model = LanguageModelFactory.getLanguageModel(this.languageID);
-    const value = this.grm.suffixBased ? this.suffix : this.form;
+    const value = this.constraints.suffixBased ? this.suffix : this.form;
     return normalize
       ? model.normalizeWord(value) === model.normalizeWord(word)
       : value === word

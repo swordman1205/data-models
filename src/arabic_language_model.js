@@ -4,7 +4,7 @@ import * as Constants from './constants.js'
 /**
  * @class  LatinLanguageModel is the lass for Latin specific behavior
  */
-class ArabicLanguageModel extends LanguageModel {
+export default class ArabicLanguageModel extends LanguageModel {
   static get languageID () { return Constants.LANG_ARABIC }
   static get languageCode () { return Constants.STR_LANG_CODE_ARA }
   static get languageCodes () { return [Constants.STR_LANG_CODE_ARA, Constants.STR_LANG_CODE_AR] }
@@ -60,4 +60,3 @@ class ArabicLanguageModel extends LanguageModel {
     return ".,;:!?'\"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r"
   }
 }
-export default ArabicLanguageModel

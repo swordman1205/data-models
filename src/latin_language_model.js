@@ -158,7 +158,7 @@ export default class LatinLanguageModel extends LanguageModel {
    * @param {Inflection} inflection - An inflection object
    * @return {Object} Inflection properties
    */
-  static getInflectionGrammar (inflection) {
+  static getInflectionConstraints (inflection) {
     let grammar = {
       fullFormBased: false,
       suffixBased: false,

@@ -197,8 +197,8 @@ export default class GreekLanguageModel extends LanguageModel {
    * @param {Inflection} inflection - An inflection object
    * @return {Object} Inflection properties
    */
-  static getInflectionGrammar (inflection) {
-    let grammar = {
+  static getInflectionConstraints (inflection) {
+    let constraints = {
       fullFormBased: false,
       suffixBased: false,
       pronounClassRequired: false
@@ -208,22 +208,22 @@ export default class GreekLanguageModel extends LanguageModel {
       inflection[Feature.types.part].length === 1) {
       let partOfSpeech = inflection[Feature.types.part][0]
       if (partOfSpeech.value === Constants.POFS_PRONOUN) {
-        grammar.fullFormBased = true
+        constraints.fullFormBased = true
       } else {
-        grammar.suffixBased = true
+        constraints.suffixBased = true
       }
     } else {
       console.warn(`Unable to set grammar: part of speech data is missing or is incorrect`, inflection[Feature.types.part])
     }
 
-    grammar.pronounClassRequired =
+    constraints.pronounClassRequired =
       LanguageModelFactory.compareLanguages(GreekLanguageModel.languageID, inflection.languageID) &&
       inflection.hasOwnProperty(Feature.types.part) &&
       Array.isArray(inflection[Feature.types.part]) &&
       inflection[Feature.types.part].length >= 1 &&
       inflection[Feature.types.part][0].value === Constants.POFS_PRONOUN
 
-    return grammar
+    return constraints
   }
 
   /**

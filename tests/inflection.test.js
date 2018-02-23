@@ -19,10 +19,11 @@ describe('Inflection object', () => {
       suffix: null,
       prefix: null,
       example: null,
+
       languageCode: grc,
       languageID: Constants.LANG_GREEK,
       model: expect.anything(),
-      grm: {
+      constraints: {
         fullFormBased: false,
         suffixBased: false,
         obligatoryMatches: expect.arrayContaining([]),
