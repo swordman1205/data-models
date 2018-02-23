@@ -2,29 +2,18 @@ import LanguageModel from './language_model.js'
 import LanguageModelFactory from './language_model_factory.js'
 import * as Constants from './constants.js'
 import Feature from './feature.js'
-import FeatureType from './feature_type.js'
 
 /**
  * @class  LatinLanguageModel is the lass for Latin specific behavior
  */
-class GreekLanguageModel extends LanguageModel {
-  /**
-   * @constructor
-   */
-  constructor () {
-    super()
-    this.sourceLanguage = GreekLanguageModel.sourceLanguage
-    this.contextForward = 0
-    this.contextBackward = 0
-    this.direction = Constants.LANG_DIR_LTR
-    this.baseUnit = Constants.LANG_UNIT_WORD
-    this.languageCodes = GreekLanguageModel.codes
-    this.features = this._initializeFeatures()
-  }
-
-  static get languageID () {
-    return Constants.LANG_GREEK
-  }
+export default class GreekLanguageModel extends LanguageModel {
+  static get languageID () { return Constants.LANG_GREEK }
+  static get languageCode () { return Constants.STR_LANG_CODE_GRC }
+  static get languageCodes () { return [Constants.STR_LANG_CODE_GRC] }
+  static get contextForward () { return 0 }
+  static get contextBackward () { return 0 }
+  static get direction () { return Constants.LANG_DIR_LTR }
+  static get baseUnit () { return Constants.LANG_UNIT_WORD }
 
   static get featureValues () {
     /*
@@ -105,6 +94,7 @@ class GreekLanguageModel extends LanguageModel {
         ]
       ],
       [
+        // TODO full list of greek dialects
         Feature.types.dialect,
         [
           'attic',
@@ -115,108 +105,18 @@ class GreekLanguageModel extends LanguageModel {
     ])
   }
 
-  static getFeatureType (name) {
-    let featureValues = GreekLanguageModel.featureValues
-    if (featureValues.has(name)) {
-      return new FeatureType(name, featureValues.get(name), GreekLanguageModel.sourceLanguage)
-    } else {
-      throw new Error(`Feature "${name}" is not defined`)
-    }
-  }
-
-  _initializeFeatures () {
-    let features = super._initializeFeatures()
-    let code = this.toCode()
-    features[Feature.types.grmClass] = new FeatureType(Feature.types.grmClass,
-      [Constants.CLASS_DEMONSTRATIVE,
-        Constants.CLASS_GENERAL_RELATIVE,
-        Constants.CLASS_INDEFINITE,
-        Constants.CLASS_INTENSIVE,
-        Constants.CLASS_INTERROGATIVE,
-        Constants.CLASS_PERSONAL,
-        Constants.CLASS_POSSESSIVE,
-        Constants.CLASS_RECIPROCAL,
-        Constants.CLASS_REFLEXIVE,
-        Constants.CLASS_RELATIVE
-      ],
-      code)
-    features[Feature.types.number] = new FeatureType(Feature.types.number, [Constants.NUM_SINGULAR, Constants.NUM_PLURAL, Constants.NUM_DUAL], code)
-    features[Feature.types.grmCase] = new FeatureType(Feature.types.grmCase,
-      [Constants.CASE_NOMINATIVE,
-        Constants.CASE_GENITIVE,
-        Constants.CASE_DATIVE,
-        Constants.CASE_ACCUSATIVE,
-        Constants.CASE_VOCATIVE
-      ], code)
-    features[Feature.types.declension] = new FeatureType(Feature.types.declension,
-      [Constants.ORD_1ST, Constants.ORD_2ND, Constants.ORD_3RD], code)
-    features[Feature.types.tense] = new FeatureType(Feature.types.tense,
-      [Constants.TENSE_PRESENT,
-        Constants.TENSE_IMPERFECT,
-        Constants.TENSE_FUTURE,
-        Constants.TENSE_PERFECT,
-        Constants.TENSE_PLUPERFECT,
-        Constants.TENSE_FUTURE_PERFECT,
-        Constants.TENSE_AORIST
-      ], code)
-    features[Feature.types.voice] = new FeatureType(Feature.types.voice,
-      [Constants.VOICE_PASSIVE,
-        Constants.VOICE_ACTIVE,
-        Constants.VOICE_MEDIOPASSIVE,
-        Constants.VOICE_MIDDLE
-      ], code)
-    features[Feature.types.mood] = new FeatureType(Feature.types.mood,
-      [Constants.MOOD_INDICATIVE,
-        Constants.MOOD_SUBJUNCTIVE,
-        Constants.MOOD_OPTATIVE,
-        Constants.MOOD_IMPERATIVE
-      ], code)
-    // TODO full list of greek dialects
-    features[Feature.types.dialect] = new FeatureType(Feature.types.dialect, ['attic', 'epic', 'doric'], code)
-    return features
-  }
-
-  /**
-   * @return {Symbol} Returns a language ID
-   */
-  static get sourceLanguage () {
-    return Constants.LANG_GREEK
-  }
-
-  static get codes () {
-    return [Constants.STR_LANG_CODE_GRC]
-  }
-
-  /**
-   * Checks wither a language has a particular language code in its list of codes
-   * @param {String} languageCode - A language code to check
-   * @return {boolean} Wither this language code exists in a language code list
-   */
-  static hasCode (languageCode) {
-    return LanguageModel.hasCodeInList(languageCode, GreekLanguageModel.codes)
-  }
-
-  // For compatibility with existing code, can be replaced with a static version
-  toCode () {
-    return GreekLanguageModel.toCode()
-  }
-
-  static toCode () {
-    return Constants.STR_LANG_CODE_GRC
-  }
-
   /**
    * Check to see if this language tool can produce an inflection table display
    * for the current node
    */
-  canInflect (node) {
+  static canInflect (node) {
     return false
   }
 
   /**
    * @override LanguageModel#grammarFeatures
    */
-  grammarFeatures () {
+  static grammarFeatures () {
     // TODO this ideally might be grammar specific
     return [Feature.types.part, Feature.types.grmCase, Feature.types.mood, Feature.types.declension, Feature.types.tense, Feature.types.voice]
   }
@@ -240,7 +140,7 @@ class GreekLanguageModel extends LanguageModel {
   /**
    * @override LanguageModel#alternateWordEncodings
    */
-  alternateWordEncodings (word, preceding = null, following = null, encoding = null) {
+  static alternateWordEncodings (word, preceding = null, following = null, encoding = null) {
     // the original alpheios code used the following normalizations
     // 1. When looking up a lemma
     //    stripped vowel length
@@ -288,7 +188,7 @@ class GreekLanguageModel extends LanguageModel {
    * Get a list of valid puncutation for this language
    * @returns {String} a string containing valid puncutation symbols
    */
-  getPunctuation () {
+  static getPunctuation () {
     return '.,;:!?\'"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r'
   }
 
@@ -364,5 +264,3 @@ class GreekLanguageModel extends LanguageModel {
     return classes
   }
 }
-
-export default GreekLanguageModel

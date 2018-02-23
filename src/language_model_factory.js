@@ -58,9 +58,11 @@ class LanguageModelFactory {
   static getLanguageIdFromCode (languageCode) {
     for (const languageModel of MODELS.values()) {
       if (languageModel.hasCode(languageCode)) {
-        return languageModel.sourceLanguage
+        return languageModel.languageID
       }
     }
+    // Noting found, return a Symbol with an undefined value (to keep return value type the same)
+    return Constants.LANG_UNDEFINED
   }
 
   /**
@@ -70,10 +72,12 @@ class LanguageModelFactory {
    */
   static getLanguageCodeFromId (languageID) {
     for (const languageModel of MODELS.values()) {
-      if (languageModel.sourceLanguage === languageID) {
-        return languageModel.toCode()
+      if (languageModel.languageID === languageID) {
+        return languageModel.languageCode
       }
     }
+    // Noting found, return a string with an undefined value (to keep return value type the same)
+    return Constants.STR_LANG_CODE_UNDEFINED
   }
 
   /**

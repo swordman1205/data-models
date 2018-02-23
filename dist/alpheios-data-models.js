@@ -3,10 +3,12 @@ const LANG_UNIT_WORD = Symbol('word');
 const LANG_UNIT_CHAR = Symbol('char');
 const LANG_DIR_LTR = Symbol('ltr');
 const LANG_DIR_RTL = Symbol('rtl');
+const LANG_UNDEFINED = Symbol('undefined');
 const LANG_LATIN = Symbol('latin');
 const LANG_GREEK = Symbol('greek');
 const LANG_ARABIC = Symbol('arabic');
 const LANG_PERSIAN = Symbol('persian');
+const STR_LANG_CODE_UNDEFINED = 'undefined';
 const STR_LANG_CODE_LAT = 'lat';
 const STR_LANG_CODE_LA = 'la';
 const STR_LANG_CODE_GRC = 'grc';
@@ -220,10 +222,12 @@ var constants = Object.freeze({
 	LANG_UNIT_CHAR: LANG_UNIT_CHAR,
 	LANG_DIR_LTR: LANG_DIR_LTR,
 	LANG_DIR_RTL: LANG_DIR_RTL,
+	LANG_UNDEFINED: LANG_UNDEFINED,
 	LANG_LATIN: LANG_LATIN,
 	LANG_GREEK: LANG_GREEK,
 	LANG_ARABIC: LANG_ARABIC,
 	LANG_PERSIAN: LANG_PERSIAN,
+	STR_LANG_CODE_UNDEFINED: STR_LANG_CODE_UNDEFINED,
 	STR_LANG_CODE_LAT: STR_LANG_CODE_LAT,
 	STR_LANG_CODE_LA: STR_LANG_CODE_LA,
 	STR_LANG_CODE_GRC: STR_LANG_CODE_GRC,
@@ -851,15 +855,111 @@ class InflectionGroup {
  * @class  LanguageModel is the base class for language-specific behavior
  */
 class LanguageModel {
-  /**
-   */
   constructor () {
-    this.sourceLanguage = null;
-    this.contextForward = 0;
-    this.context_backward = 0;
-    this.direction = LANG_DIR_LTR;
-    this.baseUnit = LANG_UNIT_WORD;
-    this.codes = [];
+    // This is just to avoid JavaScript Standard error on `context_backward` getter name. Don't need a constructor otherwise
+    // TODO: `contextBackward` shall be used instead of `context_backward` wherever it is used
+    this.context_backward = LanguageModel.contextBackward;
+  }
+
+  static get contextForward () { return 0 }
+  static get contextBackward () { return 0 }
+  static get direction () { return LANG_DIR_LTR }
+  static get baseUnit () { return LANG_UNIT_WORD }
+
+  /**
+   * @deprecated
+   */
+  get contextForward () {
+    console.warn(`Please use static "contextForward" instead`);
+    return this.constructor.contextForward
+  }
+
+  /**
+   * @deprecated
+   */
+  get contextBackward () {
+    console.warn(`Please use static "contextBackward" instead`);
+    return this.constructor.contextBackward
+  }
+
+  /**
+   * @deprecated
+   */
+  get direction () {
+    console.warn(`Please use static "direction" instead`);
+    return this.constructor.direction
+  }
+
+  /**
+   * @deprecated
+   */
+  get baseUnit () {
+    console.warn(`Please use static "baseUnit" instead`);
+    return this.constructor.baseUnit
+  }
+
+  /**
+   * @deprecated
+   */
+  get features () {
+    console.warn(`Please use individual "getFeatureType" or static "features" instead`);
+    return this.constructor.features
+  }
+
+  static get features () {
+    let features = {};
+    for (const featureName of this.featureValues.keys()) {
+      features[featureName] = this.getFeatureType(featureName);
+    }
+    return features
+  }
+
+  static get languageID () {
+    return LANG_UNDEFINED
+  }
+
+  static get languageCode () {
+    return STR_LANG_CODE_UNDEFINED
+  }
+
+  /**
+   * Returns an array of language codes that represents the language.
+   * @return {String[]} An array of language codes that matches the language.
+   */
+  static get languageCodes () {
+    return []
+  }
+
+  static get codes () {
+    console.warn(`Use static "languageCodes" instead`);
+    return this.languageCodes
+  }
+
+  /**
+   * @deprecated
+   * @return {String[]}
+   */
+  get codes () {
+    console.warn(`Please use a static version of "codes" instead`);
+    return this.constructor.languageCodes
+  }
+
+  /**
+   * @deprecated
+   * @return {string}
+   */
+  toCode () {
+    console.warn(`Please use a static "languageCode" instead`);
+    return this.constructor.languageCode
+  }
+
+  /**
+   * @deprecated
+   * @return {string}
+   */
+  static toCode () {
+    console.warn(`Please use a static "languageCode" instead`);
+    return this.languageCode
   }
 
   static get featureValues () {
@@ -982,64 +1082,54 @@ class LanguageModel {
     ])
   }
 
+  /**
+   * @deprecated
+   * @return {symbol} Returns a language ID
+   */
+  static get sourceLanguage () {
+    console.warn(`Please use languageID directly`);
+    return this.languageID
+  }
+
+  /**
+   * @deprecated
+   * @return {symbol} Returns a language ID
+   */
+  get sourceLanguage () {
+    console.warn(`Please use languageID directly`);
+    return this.constructor.languageID
+  }
+
+  static getFeatureType (name) {
+    let featureValues = this.featureValues;
+    if (featureValues.has(name)) {
+      return new FeatureType(name, featureValues.get(name), this.languageID)
+    } else {
+      throw new Error(`Feature "${name}" is not defined`)
+    }
+  }
+
   _initializeFeatures () {
     let features = {};
-    let code = this.toCode();
-    features[Feature.types.part] = new FeatureType(Feature.types.part,
-      [POFS_ADVERB,
-        POFS_ADVERBIAL,
-        POFS_ADJECTIVE,
-        POFS_ARTICLE,
-        POFS_CONJUNCTION,
-        POFS_EXCLAMATION,
-        POFS_INTERJECTION,
-        POFS_NOUN,
-        POFS_NUMERAL,
-        POFS_PARTICLE,
-        POFS_PREFIX,
-        POFS_PREPOSITION,
-        POFS_PRONOUN,
-        POFS_SUFFIX,
-        POFS_SUPINE,
-        POFS_VERB,
-        POFS_VERB_PARTICIPLE], code);
-    features[Feature.types.gender] = new FeatureType(Feature.types.gender,
-      [GEND_MASCULINE, GEND_FEMININE, GEND_NEUTER], code);
-    features[Feature.types.type] = new FeatureType(Feature.types.type,
-      [TYPE_REGULAR, TYPE_IRREGULAR], code);
-    features[Feature.types.person] = new FeatureType(Feature.types.person,
-      [ORD_1ST, ORD_2ND, ORD_3RD], code);
-    // some general, non-language specific grammatical features
-    features[Feature.types.age] = new FeatureType(Feature.types.age,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.area] = new FeatureType(Feature.types.area,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.source] = new FeatureType(Feature.types.source,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.frequency] = new FeatureType(Feature.types.frequency,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.geo] = new FeatureType(Feature.types.geo,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.pronunciation] = new FeatureType(Feature.types.pronunciation,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.kind] = new FeatureType(Feature.types.kind,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.comparison] = new FeatureType(Feature.types.comparison,
-      [COMP_POSITIVE, COMP_SUPERLATIVE, COMP_COMPARITIVE], code);
-    features[Feature.types.morph] = new FeatureType(Feature.types.morph,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.stemtype] = new FeatureType(Feature.types.stemtype,
-      [FeatureType.UNRESTRICTED_VALUE], code);
-    features[Feature.types.derivtype] = new FeatureType(Feature.types.derivtype,
-      [FeatureType.UNRESTRICTED_VALUE], code);
+    for (const featureName of this.constructor.featureValues.keys()) {
+      features[featureName] = this.constructor.getFeatureType(featureName);
+    }
     return features
+  }
+
+  /**
+   * @deprecated
+   */
+  grammarFeatures () {
+    console.warn(`Please use a static version of "grammarFeatures" instead`);
+    return this.constructor.grammarFeatures()
   }
 
   /**
    * Identify the morphological features which should be linked to a grammar.
    * @returns {String[]} Array of Feature types
    */
-  grammarFeatures () {
+  static grammarFeatures () {
     return []
   }
 
@@ -1047,7 +1137,7 @@ class LanguageModel {
    * Check to see if this language tool can produce an inflection table display
    * for the current node
    */
-  canInflect (node) {
+  static canInflect (node) {
     return false
   }
 
@@ -1058,7 +1148,7 @@ class LanguageModel {
    * @type Boolean
    */
   static supportsLanguage (code) {
-    return this.codes.includes[code]
+    return this.languageCodes.includes[code]
   }
 
   /**
@@ -1078,30 +1168,40 @@ class LanguageModel {
    * @param {string} preceding optional preceding word
    * @param {string} following optional following word
    * @param {string} encoding optional encoding name to filter the response to
-   * @returns an array of alternate encodinges
+   * @returns {Array} an array of alternate encodings
    */
-  alternateWordEncodings (word, preceding = null, folloiwng = null, encoding = null) {
+  static alternateWordEncodings (word, preceding = null, following = null, encoding = null) {
     return []
+  }
+
+  alternateWordEncodings (word, preceding, following, encoding) {
+    console.warn(`Please use static "alternateWordEncodings" instead`);
+    return this.constructor.alternateWordEncodings(word, preceding, following, encoding)
   }
 
   /**
    * Get a list of valid puncutation for this language
    * @returns {String} a string containing valid puncutation symbols
    */
-  getPunctuation () {
+  static getPunctuation () {
     return '.,;:!?\'"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r'
   }
 
+  /**
+   * @deprecated
+   * @return {String}
+   */
+  getPunctuation () {
+    console.warn(`Please use a static version of "getPunctuation"`);
+    return this.constructor.getPunctuation()
+  }
+
   toString () {
-    return String(this.sourceLanguage)
+    return String(this.constructor.languageCode)
   }
 
   isEqual (model) {
-    return this.sourceLanguage === model.sourceLanguage
-  }
-
-  toCode () {
-    return null
+    return LanguageModelFactory.compareLanguages(this.languageID, model.languageID)
   }
 
   /*
@@ -1112,22 +1212,13 @@ class LanguageModel {
    */
 
   /**
-   * Returns an array of language codes that represents the language.
-   * @return {String[]} An array of language codes that matches the language.
-   */
-  static get codes () {
-    return []
-  }
-
-  /**
-   * Checks wither a language has a particular language code in its list of codes
+   * Checks whether a language has a particular language code in its list of codes
    * @param {String} languageCode - A language code to check
-   * @param {String[]} codes - Array of language codes a specific language has
-   * @return {boolean} Wither this language code exists in a language code list
+   * @return {boolean} Whether this language code exists in a language code list
    */
-  static hasCodeInList (languageCode, codes) {
-    if (LanguageModel.isLanguageCode(languageCode)) {
-      return codes.includes(languageCode)
+  static hasCode (languageCode) {
+    if (this.isLanguageCode(languageCode)) {
+      return this.languageCodes.includes(languageCode)
     } else {
       throw new Error(`Format of a "${languageCode}" is incorrect`)
     }
@@ -1149,6 +1240,15 @@ class LanguageModel {
    */
   static isLanguageCode (language) {
     return !LanguageModel.isLanguageID(language)
+  }
+
+  /**
+   * @deprecated
+   * @param node
+   */
+  canInflect (node) {
+    console.warn(`Please use a static version of "canInflect" instead`);
+    return this.constructor.canInflect(node)
   }
 
   /**
@@ -1282,92 +1382,108 @@ class LanguageModel {
  * @class  LatinLanguageModel is the lass for Latin specific behavior
  */
 class LatinLanguageModel extends LanguageModel {
-   /**
-   */
-  constructor () {
-    super();
-    this.sourceLanguage = LatinLanguageModel.sourceLanguage; // For compatibility, should use a static method instead
-    this.contextForward = 0;
-    this.contextBackward = 0;
-    this.direction = LANG_DIR_LTR;
-    this.baseUnit = LANG_UNIT_WORD;
-    this.codes = LatinLanguageModel.codes; // To keep compatibility with existing code
-    this.features = this._initializeFeatures();
-  }
+  static get languageID () { return LANG_LATIN }
+  static get languageCode () { return STR_LANG_CODE_LAT }
+  static get languageCodes () { return [STR_LANG_CODE_LA, STR_LANG_CODE_LAT] }
+  static get contextForward () { return 0 }
+  static get contextBackward () { return 0 }
+  static get direction () { return LANG_DIR_LTR }
+  static get baseUnit () { return LANG_UNIT_WORD }
 
-  static get sourceLanguage () {
-    return LANG_LATIN
-  }
-
-  static get codes () {
-    return [STR_LANG_CODE_LA, STR_LANG_CODE_LAT]
-  }
-
-  /**
-   * Checks wither a language has a particular language code in its list of codes
-   * @param {String} languageCode - A language code to check
-   * @return {boolean} Wither this language code exists in a language code list
-   */
-  static hasCode (languageCode) {
-    return LanguageModel.hasCodeInList(languageCode, LatinLanguageModel.codes)
-  }
-
-  _initializeFeatures () {
-    let features = super._initializeFeatures();
-    let code = this.toCode();
-    features[Feature.types.grmClass] = new FeatureType(Feature.types.grmClass,
-      [ CLASS_PERSONAL,
-        CLASS_REFLEXIVE,
-        CLASS_POSSESSIVE,
-        CLASS_DEMONSTRATIVE,
-        CLASS_RELATIVE,
-        CLASS_INTERROGATIVE
+  static get featureValues () {
+    /*
+    This could be a static variable, but then it will create a circular reference:
+    Feature -> LanguageModelFactory -> LanguageModel -> Feature
+     */
+    return new Map([
+      ...LanguageModel.featureValues,
+      [
+        Feature.types.grmClass,
+        [
+          CLASS_PERSONAL,
+          CLASS_REFLEXIVE,
+          CLASS_POSSESSIVE,
+          CLASS_DEMONSTRATIVE,
+          CLASS_RELATIVE,
+          CLASS_INTERROGATIVE
+        ]
       ],
-      code);
-    features[Feature.types.number] = new FeatureType(Feature.types.number, [NUM_SINGULAR, NUM_PLURAL], code);
-    features[Feature.types.grmCase] = new FeatureType(Feature.types.grmCase,
-      [ CASE_NOMINATIVE,
-        CASE_GENITIVE,
-        CASE_DATIVE,
-        CASE_ACCUSATIVE,
-        CASE_ABLATIVE,
-        CASE_LOCATIVE,
-        CASE_VOCATIVE
-      ], code);
-    features[Feature.types.declension] = new FeatureType(Feature.types.declension,
-      [ ORD_1ST, ORD_2ND, ORD_3RD, ORD_4TH, ORD_5TH ], code);
-    features[Feature.types.tense] = new FeatureType(Feature.types.tense,
-      [ TENSE_PRESENT,
-        TENSE_IMPERFECT,
-        TENSE_FUTURE,
-        TENSE_PERFECT,
-        TENSE_PLUPERFECT,
-        TENSE_FUTURE_PERFECT
-      ], code);
-    features[Feature.types.voice] = new FeatureType(Feature.types.voice, [VOICE_ACTIVE, VOICE_PASSIVE], code);
-    features[Feature.types.mood] = new FeatureType(Feature.types.mood,
-      [ MOOD_INDICATIVE,
-        MOOD_SUBJUNCTIVE,
-        MOOD_IMPERATIVE,
-        MOOD_PARTICIPLE,
-        MOOD_SUPINE,
-        MOOD_GERUNDIVE,
-        MOOD_PARTICIPLE,
-        MOOD_INFINITIVE
-      ], code);
-    features[Feature.types.conjugation] = new FeatureType(Feature.types.conjugation,
-      [ ORD_1ST,
-        ORD_2ND,
-        ORD_3RD,
-        ORD_4TH
-      ], code);
-    return features
+      [
+        Feature.types.number,
+        [
+          NUM_SINGULAR,
+          NUM_PLURAL
+        ]
+      ],
+      [
+        Feature.types.grmCase,
+        [
+          CASE_NOMINATIVE,
+          CASE_GENITIVE,
+          CASE_DATIVE,
+          CASE_ACCUSATIVE,
+          CASE_ABLATIVE,
+          CASE_LOCATIVE,
+          CASE_VOCATIVE
+        ]
+      ],
+      [
+        Feature.types.declension,
+        [
+          ORD_1ST,
+          ORD_2ND,
+          ORD_3RD,
+          ORD_4TH,
+          ORD_5TH
+        ]
+      ],
+      [
+        Feature.types.tense,
+        [
+          TENSE_PRESENT,
+          TENSE_IMPERFECT,
+          TENSE_FUTURE,
+          TENSE_PERFECT,
+          TENSE_PLUPERFECT,
+          TENSE_FUTURE_PERFECT
+        ]
+      ],
+      [
+        Feature.types.voice,
+        [
+          VOICE_ACTIVE,
+          VOICE_PASSIVE
+        ]
+      ],
+      [
+        Feature.types.mood,
+        [
+          MOOD_INDICATIVE,
+          MOOD_SUBJUNCTIVE,
+          MOOD_IMPERATIVE,
+          MOOD_PARTICIPLE,
+          MOOD_SUPINE,
+          MOOD_GERUNDIVE,
+          MOOD_PARTICIPLE,
+          MOOD_INFINITIVE
+        ]
+      ],
+      [
+        Feature.types.conjugation,
+        [
+          ORD_1ST,
+          ORD_2ND,
+          ORD_3RD,
+          ORD_4TH
+        ]
+      ]
+    ])
   }
 
   /**
    * @override LanguageModel#grammarFeatures
    */
-  grammarFeatures () {
+  static grammarFeatures () {
     // TODO this ideally might be grammar specific
     return [Feature.types.part, Feature.types.grmCase, Feature.types.mood, Feature.types.declension, Feature.types.tense]
   }
@@ -1376,7 +1492,7 @@ class LatinLanguageModel extends LanguageModel {
    * Check to see if this language tool can produce an inflection table display
    * for the current node
    */
-  canInflect (node) {
+  static canInflect (node) {
     return true
   }
 
@@ -1410,17 +1526,8 @@ class LatinLanguageModel extends LanguageModel {
    * Get a list of valid puncutation for this language
    * @returns {String} a string containing valid puncutation symbols
    */
-  getPunctuation () {
+  static getPunctuation () {
     return ".,;:!?'\"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r"
-  }
-
-  // For compatibility with existing code, can be replaced with a static version
-  toCode () {
-    return LatinLanguageModel.toCode()
-  }
-
-  static toCode () {
-    return STR_LANG_CODE_LAT
   }
 
   /**
@@ -1455,23 +1562,13 @@ class LatinLanguageModel extends LanguageModel {
  * @class  LatinLanguageModel is the lass for Latin specific behavior
  */
 class GreekLanguageModel extends LanguageModel {
-  /**
-   * @constructor
-   */
-  constructor () {
-    super();
-    this.sourceLanguage = GreekLanguageModel.sourceLanguage;
-    this.contextForward = 0;
-    this.contextBackward = 0;
-    this.direction = LANG_DIR_LTR;
-    this.baseUnit = LANG_UNIT_WORD;
-    this.languageCodes = GreekLanguageModel.codes;
-    this.features = this._initializeFeatures();
-  }
-
-  static get languageID () {
-    return LANG_GREEK
-  }
+  static get languageID () { return LANG_GREEK }
+  static get languageCode () { return STR_LANG_CODE_GRC }
+  static get languageCodes () { return [STR_LANG_CODE_GRC] }
+  static get contextForward () { return 0 }
+  static get contextBackward () { return 0 }
+  static get direction () { return LANG_DIR_LTR }
+  static get baseUnit () { return LANG_UNIT_WORD }
 
   static get featureValues () {
     /*
@@ -1552,6 +1649,7 @@ class GreekLanguageModel extends LanguageModel {
         ]
       ],
       [
+        // TODO full list of greek dialects
         Feature.types.dialect,
         [
           'attic',
@@ -1562,108 +1660,18 @@ class GreekLanguageModel extends LanguageModel {
     ])
   }
 
-  static getFeatureType (name) {
-    let featureValues = GreekLanguageModel.featureValues;
-    if (featureValues.has(name)) {
-      return new FeatureType(name, featureValues.get(name), GreekLanguageModel.sourceLanguage)
-    } else {
-      throw new Error(`Feature "${name}" is not defined`)
-    }
-  }
-
-  _initializeFeatures () {
-    let features = super._initializeFeatures();
-    let code = this.toCode();
-    features[Feature.types.grmClass] = new FeatureType(Feature.types.grmClass,
-      [CLASS_DEMONSTRATIVE,
-        CLASS_GENERAL_RELATIVE,
-        CLASS_INDEFINITE,
-        CLASS_INTENSIVE,
-        CLASS_INTERROGATIVE,
-        CLASS_PERSONAL,
-        CLASS_POSSESSIVE,
-        CLASS_RECIPROCAL,
-        CLASS_REFLEXIVE,
-        CLASS_RELATIVE
-      ],
-      code);
-    features[Feature.types.number] = new FeatureType(Feature.types.number, [NUM_SINGULAR, NUM_PLURAL, NUM_DUAL], code);
-    features[Feature.types.grmCase] = new FeatureType(Feature.types.grmCase,
-      [CASE_NOMINATIVE,
-        CASE_GENITIVE,
-        CASE_DATIVE,
-        CASE_ACCUSATIVE,
-        CASE_VOCATIVE
-      ], code);
-    features[Feature.types.declension] = new FeatureType(Feature.types.declension,
-      [ORD_1ST, ORD_2ND, ORD_3RD], code);
-    features[Feature.types.tense] = new FeatureType(Feature.types.tense,
-      [TENSE_PRESENT,
-        TENSE_IMPERFECT,
-        TENSE_FUTURE,
-        TENSE_PERFECT,
-        TENSE_PLUPERFECT,
-        TENSE_FUTURE_PERFECT,
-        TENSE_AORIST
-      ], code);
-    features[Feature.types.voice] = new FeatureType(Feature.types.voice,
-      [VOICE_PASSIVE,
-        VOICE_ACTIVE,
-        VOICE_MEDIOPASSIVE,
-        VOICE_MIDDLE
-      ], code);
-    features[Feature.types.mood] = new FeatureType(Feature.types.mood,
-      [MOOD_INDICATIVE,
-        MOOD_SUBJUNCTIVE,
-        MOOD_OPTATIVE,
-        MOOD_IMPERATIVE
-      ], code);
-    // TODO full list of greek dialects
-    features[Feature.types.dialect] = new FeatureType(Feature.types.dialect, ['attic', 'epic', 'doric'], code);
-    return features
-  }
-
-  /**
-   * @return {Symbol} Returns a language ID
-   */
-  static get sourceLanguage () {
-    return LANG_GREEK
-  }
-
-  static get codes () {
-    return [STR_LANG_CODE_GRC]
-  }
-
-  /**
-   * Checks wither a language has a particular language code in its list of codes
-   * @param {String} languageCode - A language code to check
-   * @return {boolean} Wither this language code exists in a language code list
-   */
-  static hasCode (languageCode) {
-    return LanguageModel.hasCodeInList(languageCode, GreekLanguageModel.codes)
-  }
-
-  // For compatibility with existing code, can be replaced with a static version
-  toCode () {
-    return GreekLanguageModel.toCode()
-  }
-
-  static toCode () {
-    return STR_LANG_CODE_GRC
-  }
-
   /**
    * Check to see if this language tool can produce an inflection table display
    * for the current node
    */
-  canInflect (node) {
+  static canInflect (node) {
     return false
   }
 
   /**
    * @override LanguageModel#grammarFeatures
    */
-  grammarFeatures () {
+  static grammarFeatures () {
     // TODO this ideally might be grammar specific
     return [Feature.types.part, Feature.types.grmCase, Feature.types.mood, Feature.types.declension, Feature.types.tense, Feature.types.voice]
   }
@@ -1687,7 +1695,7 @@ class GreekLanguageModel extends LanguageModel {
   /**
    * @override LanguageModel#alternateWordEncodings
    */
-  alternateWordEncodings (word, preceding = null, following = null, encoding = null) {
+  static alternateWordEncodings (word, preceding = null, following = null, encoding = null) {
     // the original alpheios code used the following normalizations
     // 1. When looking up a lemma
     //    stripped vowel length
@@ -1735,7 +1743,7 @@ class GreekLanguageModel extends LanguageModel {
    * Get a list of valid puncutation for this language
    * @returns {String} a string containing valid puncutation symbols
    */
-  getPunctuation () {
+  static getPunctuation () {
     return '.,;:!?\'"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r'
   }
 
@@ -1816,62 +1824,26 @@ class GreekLanguageModel extends LanguageModel {
  * @class  LatinLanguageModel is the lass for Latin specific behavior
  */
 class ArabicLanguageModel extends LanguageModel {
-   /**
-   * @constructor
-   */
-  constructor () {
-    super();
-    this.sourceLanguage = ArabicLanguageModel.sourceLanguage;
-    this.contextForward = 0;
-    this.contextBackward = 0;
-    this.direction = LANG_DIR_RTL;
-    this.baseUnit = LANG_UNIT_WORD;
-    this.languageCodes = ArabicLanguageModel.codes;
-    this._initializeFeatures();
-  }
-
-  _initializeFeatures () {
-    this.features = super._initializeFeatures();
-  }
-
-  static get sourceLanguage () {
-    return LANG_ARABIC
-  }
-
-  static get codes () {
-    return [STR_LANG_CODE_ARA, STR_LANG_CODE_AR]
-  }
-
-  // For compatibility with existing code, can be replaced with a static version
-  toCode () {
-    return ArabicLanguageModel.toCode()
-  }
-
-  static toCode () {
-    return STR_LANG_CODE_ARA
-  }
-
-  /**
-   * Checks wither a language has a particular language code in its list of codes
-   * @param {String} languageCode - A language code to check
-   * @return {boolean} Wither this language code exists in a language code list
-   */
-  static hasCode (languageCode) {
-    return LanguageModel.hasCodeInList(languageCode, ArabicLanguageModel.codes)
-  }
+  static get languageID () { return LANG_ARABIC }
+  static get languageCode () { return STR_LANG_CODE_ARA }
+  static get languageCodes () { return [STR_LANG_CODE_ARA, STR_LANG_CODE_AR] }
+  static get contextForward () { return 0 }
+  static get contextBackward () { return 0 }
+  static get direction () { return LANG_DIR_RTL }
+  static get baseUnit () { return LANG_UNIT_WORD }
 
   /**
    * Check to see if this language tool can produce an inflection table display
    * for the current node
    */
-  canInflect (node) {
+  static canInflect (node) {
     return false
   }
 
   /**
    * @override LanguageModel#alternateWordEncodings
    */
-  alternateWordEncodings (word, preceding = null, following = null, encoding = null) {
+  static alternateWordEncodings (word, preceding = null, following = null, encoding = null) {
     // tanwin (& tatweel) - drop FATHATAN, DAMMATAN, KASRATAN, TATWEEL
     let tanwin = word.replace(/[\u{064B}\u{064C}\u{064D}\u{0640}]/ug, '');
     // hamzas - replace ALEF WITH MADDA ABOVE, ALEF WITH HAMZA ABOVE/BELOW with ALEF
@@ -1903,7 +1875,7 @@ class ArabicLanguageModel extends LanguageModel {
    * Get a list of valid puncutation for this language
    * @returns {String} a string containing valid puncutation symbols
    */
-  getPunctuation () {
+  static getPunctuation () {
     return ".,;:!?'\"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r"
   }
 }
@@ -1912,55 +1884,19 @@ class ArabicLanguageModel extends LanguageModel {
  * @class  PersianLanguageModel is the lass for Persian specific behavior
  */
 class PersianLanguageModel extends LanguageModel {
-   /**
-   * @constructor
-   */
-  constructor () {
-    super();
-    this.sourceLanguage = PersianLanguageModel.sourceLanguage;
-    this.contextForward = 0;
-    this.contextBackward = 0;
-    this.direction = LANG_DIR_RTL;
-    this.baseUnit = LANG_UNIT_WORD;
-    this.languageCodes = PersianLanguageModel.codes;
-    this._initializeFeatures();
-  }
-
-  _initializeFeatures () {
-    this.features = super._initializeFeatures();
-  }
-
-  static get sourceLanguage () {
-    return LANG_PERSIAN
-  }
-
-  static get codes () {
-    return [STR_LANG_CODE_PER, STR_LANG_CODE_FAS, STR_LANG_CODE_FA, STR_LANG_CODE_FA_IR]
-  }
-
-  // For compatibility with existing code, can be replaced with a static version
-  toCode () {
-    return PersianLanguageModel.toCode()
-  }
-
-  static toCode () {
-    return STR_LANG_CODE_PER
-  }
-
-  /**
-   * Checks wither a language has a particular language code in its list of codes
-   * @param {String} languageCode - A language code to check
-   * @return {boolean} Wither this language code exists in a language code list
-   */
-  static hasCode (languageCode) {
-    return LanguageModel.hasCodeInList(languageCode, PersianLanguageModel.codes)
-  }
+  static get languageID () { return LANG_PERSIAN }
+  static get languageCode () { return STR_LANG_CODE_PER }
+  static get languageCodes () { return [STR_LANG_CODE_PER, STR_LANG_CODE_FAS, STR_LANG_CODE_FA, STR_LANG_CODE_FA_IR] }
+  static get contextForward () { return 0 }
+  static get contextBackward () { return 0 }
+  static get direction () { return LANG_DIR_RTL }
+  static get baseUnit () { return LANG_UNIT_WORD }
 
   /**
    * Check to see if this language tool can produce an inflection table display
    * for the current node
    */
-  canInflect (node) {
+  static canInflect (node) {
     return false
   }
 
@@ -1968,7 +1904,7 @@ class PersianLanguageModel extends LanguageModel {
    * Get a list of valid puncutation for this language
    * @returns {String} a string containing valid puncutation symbols
    */
-  getPunctuation () {
+  static getPunctuation () {
     return ".,;:!?'\"(){}\\[\\]<>/\\\u00A0\u2010\u2011\u2012\u2013\u2014\u2015\u2018\u2019\u201C\u201D\u0387\u00B7\n\r"
   }
 }
@@ -2026,9 +1962,11 @@ class LanguageModelFactory {
   static getLanguageIdFromCode (languageCode) {
     for (const languageModel of MODELS.values()) {
       if (languageModel.hasCode(languageCode)) {
-        return languageModel.sourceLanguage
+        return languageModel.languageID
       }
     }
+    // Noting found, return a Symbol with an undefined value (to keep return value type the same)
+    return LANG_UNDEFINED
   }
 
   /**
@@ -2038,10 +1976,12 @@ class LanguageModelFactory {
    */
   static getLanguageCodeFromId (languageID) {
     for (const languageModel of MODELS.values()) {
-      if (languageModel.sourceLanguage === languageID) {
-        return languageModel.toCode()
+      if (languageModel.languageID === languageID) {
+        return languageModel.languageCode
       }
     }
+    // Noting found, return a string with an undefined value (to keep return value type the same)
+    return STR_LANG_CODE_UNDEFINED
   }
 
   /**
@@ -2353,7 +2293,7 @@ class Lemma {
       }
 
       if (element.languageID !== this.languageID) {
-        throw new Error('Language "' + element.languageID + '" of a feature does not match a language "' +
+        throw new Error('Language "' + element.languageID.toString() + '" of a feature does not match a language "' +
                 this.languageID.toString() + '" of a Lemma object.')
       }
 
