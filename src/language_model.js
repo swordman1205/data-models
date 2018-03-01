@@ -60,9 +60,13 @@ class LanguageModel {
     return this.constructor.features
   }
 
+  static get featureNames () {
+    return this.featureValues.keys()
+  }
+
   static get features () {
     let features = {}
-    for (const featureName of this.featureValues.keys()) {
+    for (const featureName of this.featureNames) {
       features[featureName] = this.getFeatureType(featureName)
     }
     return features

@@ -906,9 +906,13 @@ class LanguageModel {
     return this.constructor.features
   }
 
+  static get featureNames () {
+    return this.featureValues.keys()
+  }
+
   static get features () {
     let features = {};
-    for (const featureName of this.featureValues.keys()) {
+    for (const featureName of this.featureNames) {
       features[featureName] = this.getFeatureType(featureName);
     }
     return features
@@ -2247,29 +2251,31 @@ class Lemma {
   /**
    * Initializes a Lemma object.
    * @param {string} word - A word.
-   * @param {string} language - A language code of a word. TODO: Switch to using Language ID instead
-   * @param {Array[string]} principalParts - the principalParts of a lemma
-   * @param {Object} features - the grammatical features of a lemma
+   * @param {symbol | string} languageID - A language ID (symbol, please use this) or a language code of a word.
+   * @param {string[]} principalParts - the principalParts of a lemma.
+   * @param {Object} features - the grammatical features of a lemma.
    */
-  constructor (word, language, principalParts = [], features = {}) {
+  constructor (word, languageID, principalParts = [], features = {}) {
     if (!word) {
       throw new Error('Word should not be empty.')
     }
 
-    if (!language) {
+    if (!languageID) {
       throw new Error('Language should not be empty.')
     }
 
-    // if (!languages.isAllowed(language)) {
-    //    throw new Error('Language "' + language + '" is not supported.');
-    // }
+    this.languageID = undefined;
+    this.languageCode = undefined
+    ;({languageID: this.languageID, languageCode: this.languageCode} = LanguageModelFactory.getLanguageAttrs(languageID));
 
     this.word = word;
-    this.language = language; // For compatibility, should probably use language ID instead
-    this.languageCode = language;
-    this.languageID = LanguageModelFactory.getLanguageIdFromCode(this.languageCode);
     this.principalParts = principalParts;
     this.features = {};
+  }
+
+  get language () {
+    console.warn(`Please use "languageID" instead of "language"`);
+    return this.languageCode
   }
 
   static readObject (jsonObject) {
@@ -2297,7 +2303,7 @@ class Lemma {
         throw new Error('feature data must be a Feature object.')
       }
 
-      if (element.languageID !== this.languageID) {
+      if (!LanguageModelFactory.compareLanguages(element.languageID, this.languageID)) {
         throw new Error('Language "' + element.languageID.toString() + '" of a feature does not match a language "' +
                 this.languageID.toString() + '" of a Lemma object.')
       }
