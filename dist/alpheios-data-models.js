@@ -1268,7 +1268,7 @@ class LanguageModel {
    *       3. groups of those groups with unique voice and tense
    *         4. groups of inflections with unique gender, person, mood, and sort
    */
-  groupInflectionsForDisplay (inflections) {
+  static groupInflectionsForDisplay (inflections) {
     let grouped = new Map();
 
     // group inflections by part of speech
@@ -1379,6 +1379,16 @@ class LanguageModel {
       kv[1].inflections = Array.from(inflgrp.values());
     }
     return Array.from(grouped.values())
+  }
+
+  /**
+   * @deprecated
+   * @param inflections
+   * @return {*}
+   */
+  groupInflectionsForDisplay (inflections) {
+    console.warn(`Please use a static version of "groupInflectionsForDisplay" instead`);
+    return this.constructor.groupInflectionsForDisplay(inflections)
   }
 }
 
@@ -2535,7 +2545,7 @@ class Lexeme {
   }
 
   getGroupedInflections () {
-    let lm = LanguageModelFactory.getLanguageForCode(this.lemma.language);
+    let lm = LanguageModelFactory.getLanguageModel(this.lemma.languageID);
     return lm.groupInflectionsForDisplay(this.inflections)
   }
 
