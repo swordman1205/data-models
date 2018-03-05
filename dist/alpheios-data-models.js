@@ -2070,6 +2070,11 @@ class Feature {
      * Initializes a Feature object
      * @param {string | string[]} value - A single feature value or, if this feature could have multiple
      * values, an array of values.
+     * Multiple values do not allow to use a sort order. Because of this, it's better to use
+     * array of multiple Feature objects with single value each instead of a single Feature object
+     * with multiple values.
+     * Multiple values are left for backward compatibility only. Please do not use them as they
+     * will be removed in the future.
      * @param {string} type - A type of the feature, allowed values are specified in 'types' object.
      * @param {string | symbol} language - A language of a feature, allowed values are specified in 'languages' object.
      * @param {int} sortOrder - an integer used for sorting
@@ -2106,6 +2111,8 @@ class Feature {
 
   isEqual (feature) {
     if (Array.isArray(feature.value)) {
+      // `feature` is a single object with multiple `value` properties. This feature will be sunset
+      // as it does not allow to use sort order on Feature objects.
       if (!Array.isArray(this.value) || this.value.length !== feature.value.length) {
         return false
       }
@@ -2115,8 +2122,22 @@ class Feature {
       });
       return equal
     } else {
-      return this.value === feature.value && this.type === feature.type && LanguageModelFactory.compareLanguages(this.languageID, feature.languageID)
+      return LanguageModelFactory.compareLanguages(this.languageID, feature.languageID) && this.type === feature.type && this.value === feature.value
     }
+  }
+
+  isSubsetof (features) {
+    if (!Array.isArray(features)) {
+      features = [features]; // If `features` is a single value, convert it to an array (a more general case)
+    }
+    // `feature` is an array of feature objects with (possibly) each having a single feature value.
+    let languageID = features[0].languageID; // Assume all Feature objects have the same language ID
+    let type = features[0].type; // Assume all Feature objects have the same type
+    let values = features.map(f => f.value);
+    if (LanguageModelFactory.compareLanguages(this.languageID, languageID) && this.type === type && values.includes(this.value)) {
+      return true
+    }
+    return false
   }
 
   /**
