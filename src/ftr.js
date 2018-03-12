@@ -71,7 +71,7 @@ export default class Ftr {
 
   }
 
-  static get type () {
+  static get types () {
     return {
       word: 'word',
       part: 'part of speech', // Part of speech
@@ -108,7 +108,7 @@ export default class Ftr {
   }
 
   static isAllowedType (value) {
-    return Object.values(this.type).includes(`${value}`)
+    return Object.values(this.types).includes(`${value}`)
   }
 
   static get defaultSortOrder () {
