@@ -1,5 +1,6 @@
 import LMF from './language_model_factory.js'
 import * as i18n from './i18n.js'
+
 /**
  * Wrapper class for a (grammatical, usually) feature, such as part of speech or declension. Keeps both value and type information.
  */
@@ -62,20 +63,6 @@ class Feature {
     } else {
       return LMF.compareLanguages(this.languageID, feature.languageID) && this.type === feature.type && this.value === feature.value
     }
-  }
-
-  isSubsetof (features) {
-    if (!Array.isArray(features)) {
-      features = [features] // If `features` is a single value, convert it to an array (a more general case)
-    }
-    // `feature` is an array of feature objects with (possibly) each having a single feature value.
-    let languageID = features[0].languageID // Assume all Feature objects have the same language ID
-    let type = features[0].type // Assume all Feature objects have the same type
-    let values = features.map(f => f.value)
-    if (LMF.compareLanguages(this.languageID, languageID) && this.type === type && values.includes(this.value)) {
-      return true
-    }
-    return false
   }
 
   /**

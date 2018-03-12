@@ -2126,20 +2126,6 @@ class Feature {
     }
   }
 
-  isSubsetof (features) {
-    if (!Array.isArray(features)) {
-      features = [features]; // If `features` is a single value, convert it to an array (a more general case)
-    }
-    // `feature` is an array of feature objects with (possibly) each having a single feature value.
-    let languageID = features[0].languageID; // Assume all Feature objects have the same language ID
-    let type = features[0].type; // Assume all Feature objects have the same type
-    let values = features.map(f => f.value);
-    if (LanguageModelFactory.compareLanguages(this.languageID, languageID) && this.type === type && values.includes(this.value)) {
-      return true
-    }
-    return false
-  }
-
   /**
    * examine the feature for a specific value
    * @param {string} value
@@ -2390,7 +2376,7 @@ class Inflection {
     }
 
     if (!language) {
-      throw new Error('Langauge should not be empty.')
+      throw new Error('Language should not be empty.')
     }
 
     if (!LanguageModelFactory.supportsLanguage(language)) {
