@@ -12,7 +12,7 @@ class Lemma {
    * @param {string[]} principalParts - the principalParts of a lemma.
    * @param {Object} features - the grammatical features of a lemma.
    */
-  constructor (word, languageID, principalParts = [], features = {}) {
+  constructor (word, languageID, principalParts = [], features = {}, translation = {}) {
     if (!word) {
       throw new Error('Word should not be empty.')
     }
@@ -28,6 +28,8 @@ class Lemma {
     this.word = word
     this.principalParts = principalParts
     this.features = {}
+
+    this.translation = translation
   }
 
   get language () {

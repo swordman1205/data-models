@@ -17,6 +17,7 @@ import GreekLanguageModel from './greek_language_model.js'
 import ArabicLanguageModel from './arabic_language_model.js'
 import PersianLanguageModel from './persian_language_model.js'
 import ResourceProvider from './resource_provider.js'
+import Translation from './translation'
 export {
   Constants,
   Definition,
@@ -35,4 +36,5 @@ export {
   GreekLanguageModel,
   ArabicLanguageModel,
   PersianLanguageModel,
-  ResourceProvider }
+  ResourceProvider,
+  Translation }

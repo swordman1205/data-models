@@ -2851,7 +2851,7 @@ class Lemma {
    * @param {string[]} principalParts - the principalParts of a lemma.
    * @param {Object} features - the grammatical features of a lemma.
    */
-  constructor (word, languageID, principalParts = [], features = {}) {
+  constructor (word, languageID, principalParts = [], features = {}, translation = {}) {
     if (!word) {
       throw new Error('Word should not be empty.')
     }
@@ -2867,6 +2867,8 @@ class Lemma {
     this.word = word;
     this.principalParts = principalParts;
     this.features = {};
+
+    this.translation = translation;
   }
 
   get language () {
@@ -3378,5 +3380,26 @@ class ResourceProvider {
   }
 }
 
-export { constants as Constants, Definition, DefinitionSet, Feature, GrmFeature, FeatureType, FeatureList, FeatureImporter, Inflection, LanguageModelFactory, Homonym, Lexeme, Lemma, LatinLanguageModel, GreekLanguageModel, ArabicLanguageModel, PersianLanguageModel, ResourceProvider };
+/**
+ * A model for a translation of lemma
+ */
+class Translation {
+  /**
+   * Initializes a Translation object.
+   * @param {String} input - A translated lemma.
+   * @param {String} map
+   * @param {String[]} translations - A result of translation into destination language
+   */
+  constructor (input, map, translations) {
+    this.input = input;
+    this.map = map;
+    this.translations = translations;
+  }
+
+  static readObject (jsonObject) {
+    return new Translation(jsonObject.in, jsonObject.map, jsonObject.translations)
+  }
+}
+
+export { constants as Constants, Definition, DefinitionSet, Feature, GrmFeature, FeatureType, FeatureList, FeatureImporter, Inflection, LanguageModelFactory, Homonym, Lexeme, Lemma, LatinLanguageModel, GreekLanguageModel, ArabicLanguageModel, PersianLanguageModel, ResourceProvider, Translation };
 //# sourceMappingURL=alpheios-data-models.js.map
